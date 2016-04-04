@@ -95,13 +95,11 @@ let print_header fmt default_lang =
    we record the language in a session reference: *)\n\
    let%server non_connected_language =\n\
    Eliom_reference.Volatile.eref ~scope:Eliom_common.default_session_scope\n\
-   (Some " ^ default_lang ^ ")\n\
-   let%server () =\n\
-   Eliom_reference.Volatile.set non_connected_language None\n\
+   (if true then None else Some " ^ default_lang ^ ")\n\
    \n\
    let%client language = ref " ^ default_lang ^ "\n\
-   let%client non_connected_language = ref (Some " ^ default_lang ^ ")\n\
-   let%client () = non_connected_language := None\n\
+   let%client non_connected_language =\n\
+   ref (if true then None else Some " ^ default_lang ^ ")\n\
    \n\
    let%client get_lang () = !language\n\
    \n\
