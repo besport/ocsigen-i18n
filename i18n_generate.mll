@@ -100,6 +100,8 @@ let print_header fmt default_lang =
    Eliom_reference.Volatile.set non_connected_language None\n\
    \n\
    let%client language = ref " ^ default_lang ^ "\n\
+   let%client non_connected_language = ref (Some " ^ default_lang ^ ")\n\
+   let%client () = non_connected_language := None\n\
    \n\
    let%client get_lang () = !language\n\
    \n\
