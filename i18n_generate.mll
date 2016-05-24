@@ -104,7 +104,7 @@ let print_header fmt default_lang =
    let%client get_lang () = !language\n\
    \n\
    [%%shared\n\
-   [@@@ocaml.warning \"-27\"]
+   [@@@ocaml.warning \"-27\"]\n\
    let pcdata = Eliom_content.Html.F.pcdata\n\
 "
 
@@ -201,9 +201,9 @@ let _ =
      print_header output default_lang ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
-     Format.fprintf output "module S = struct\n" ;
+     Format.fprintf output "\nmodule S = struct\n" ;
      print_module_body print_expr_string output key_values ;
-     Format.fprintf output "end\n" ;
+     Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n" ;
      print_footer output
    with Failure msg ->
