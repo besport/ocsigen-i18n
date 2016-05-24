@@ -140,25 +140,34 @@ let print_module_body print_expr =
                Format.fprintf fmt "| %s -> (fun %a () -> %a)"
                  lang print_args args print_expr tr) ) tr )
 
-let print_expr_html =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "@")
+
+let pp_print_list fmt printer =
+  Format.fprintf fmt "[%a]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
+       printer)
+
+let print_expr_html fmt key_values =
+  Format.fprintf fmt "List.flatten " ;
+  pp_print_list fmt
     (fun fmt -> function
        | Str s -> Format.fprintf fmt "[pcdata \"%s\"]" s
        | Var v -> Format.pp_print_string fmt v
        | Cond (c, s1, s2) ->
          Format.fprintf fmt "[pcdata (if %s then \"%s\" else \"%s\")]"
            c s1 s2)
+    key_values
 
-let print_expr_string =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "^")
+let print_expr_string fmt key_values =
+  Format.fprintf fmt "String.concat \"\" " ;
+  pp_print_list fmt
     (fun fmt -> function
        | Str s -> Format.fprintf fmt "\"%s\"" s
        | Var v -> Format.pp_print_string fmt v
        | Cond (c, s1, s2) ->
          Format.fprintf fmt "(if %s then \"%s\" else \"%s\")"
            c s1 s2)
+    key_values
 
 let input_file = ref "-"
 let output_file = ref "-"
