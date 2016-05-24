@@ -104,6 +104,7 @@ let print_header fmt default_lang =
    let%client get_lang () = !language\n\
    \n\
    [%%shared\n\
+   [@@@ocaml.warning \"-27\"]
    let pcdata = Eliom_content.Html.F.pcdata\n\
 "
 
