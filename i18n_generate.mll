@@ -104,7 +104,7 @@ let print_header fmt default_lang =
    let%client get_lang () = !language\n\
    \n\
    [%%shared\n\
-   let pcdata = Eliom_content.Html5.F.pcdata\n\
+   let pcdata = Eliom_content.Html.F.pcdata\n\
 "
 
 let print_footer fmt = Format.pp_print_string fmt "]\n"
