@@ -33,14 +33,14 @@ let unit loc = { pexp_desc =
            ; pexp_attributes = [] }
 
 let lang_args = function
-  | (("?lang", _) as lang) :: args
-  | (("~lang", _) as lang) :: args -> ([ lang ], args)
+  | ((Labelled("?lang"), _) as lang) :: args
+  | ((Labelled("~lang"), _) as lang) :: args -> ([ lang ], args)
   | x -> ([], x)
 
 let apply e args =
   let (lang, args) = lang_args args in
-  Pexp_apply (e, lang @ [ ( "", unit e.pexp_loc ) ]
-                 @ args @ [ ( "", unit e.pexp_loc ) ] )
+  Pexp_apply (e, lang @ [ ( Nolabel, unit e.pexp_loc ) ]
+                 @ args @ [ ( Nolabel, unit e.pexp_loc ) ] )
 
 let ident expr e i =
   let e' = { e with pexp_desc = Pexp_ident { i with txt = mk_ident i } } in
