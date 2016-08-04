@@ -85,23 +85,18 @@ and parse_string_2 buffer = parse
 
 let print_header fmt default_lang =
   Format.pp_print_string fmt @@
-  "let%server language =\n\
-   Eliom_reference.Volatile.eref \
-   ~scope:Eliom_common.request_scope " ^ default_lang ^ "\n\
-   \n\
-   let%server get_lang () = Eliom_reference.Volatile.get language\n\
-   \n\
-   (* For non connected users, \
-   we record the language in a session reference: *)\n\
-   let%server non_connected_language =\n\
-   Eliom_reference.Volatile.eref ~scope:Eliom_common.default_session_scope\n\
-   (if true then None else Some " ^ default_lang ^ ")\n\
-   \n\
-   let%client language = ref " ^ default_lang ^ "\n\
-   let%client non_connected_language =\n\
-   ref (if true then None else Some " ^ default_lang ^ ")\n\
-   \n\
-   let%client get_lang () = !language\n\
+  "[%%server\n\
+   let _language_ =\n\
+   Eliom_reference.Volatile.eref\n\
+   ~scope:Eliom_common.default_process_scope " ^ default_lang ^ "\n\
+   let get_lang () = Eliom_reference.Volatile.get _language_\n\
+   let set_lang lang = Eliom_reference.Volatile.set _language_ lang\n\
+   ]\n\
+   [%%client\n\
+   let _language_ = ref " ^ default_lang ^ "\n\
+   let get_lang () = !_language_\n\
+   let set_lang lang = _language_ := lang\n\
+   ]\n\
    \n\
    [%%shared\n\
    [@@@ocaml.warning \"-27\"]\n\
