@@ -41,8 +41,8 @@ use.
 
 
 ```
-foo	This is a simple key.	Ceci est un clé tout simple.
-bar	I am {{x}}.	Je suis {{}}.
+foo	This is a simple key.	Ceci est une clé toute simple.
+bar	I am {{x}}.	Je suis {{x}}.
 baz	There {{{c?are||is}}} apple{{{c?s||}}} here!	Il y a {{{c?des||une}}} pomme{{{c?s||}}} ici !
 ```
 
