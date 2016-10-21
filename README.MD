@@ -21,7 +21,7 @@ of the output file)
 
 This will call the right function turning
 `[%i18n foo]` into `MODULE_NAME.foo ()`,
-`[%i18n S.bar ~x:"foo"]` into `MODULE_NAME.S.bar ~x:"foo" ()] and so on...
+`[%i18n S.bar ~x:"foo"]` into `MODULE_NAME.S.bar ~x:"foo" ()]` and so on...
 
 ## Installation
 
