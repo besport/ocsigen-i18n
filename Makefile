@@ -28,3 +28,13 @@ ifndef bindir
 else
 	cp ${PROGS} ${bindir}
 endif
+
+uninstall:
+ifndef bindir
+	${error bindir is not set}
+else
+	$(RM) ${bindir}/${GENERATOR}
+	$(RM) ${bindir}/${REWRITER}
+	$(RM) ${bindir}/${CHECKER}
+endif
+
