@@ -43,7 +43,9 @@ rule parse_lines langs acc = parse
       (* FIXME: Will break if List.map change its order of execution *)
       let tr = List.map (fun lang ->
           (lang, parse_expr (Buffer.create 0) [] lexbuf) ) langs in
-    eol langs ((key, tr) :: acc) lexbuf }
+      if Lexing.lexeme lexbuf = "\n"
+      then parse_lines langs acc lexbuf
+      else eol langs ((key, tr) :: acc) lexbuf }
   | eof { List.rev acc }
 
 and eol langs acc = parse
