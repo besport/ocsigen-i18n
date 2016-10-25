@@ -64,9 +64,7 @@ and parse_expr buffer acc = parse
       let acc = flush buffer acc in
       parse_expr buffer (Var x :: acc) lexbuf }
 
-  | ['\n' '\t'] as c {
-    if c = '\n' then Lexing.new_line lexbuf ;
-    let acc = flush buffer acc in List.rev acc }
+  | '\t' | "" { List.rev (flush buffer acc ) }
 
   | [^ '\n' '\t'] as c { Buffer.add_char buffer c
                        ; parse_expr buffer acc lexbuf }
