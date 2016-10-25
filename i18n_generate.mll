@@ -64,9 +64,7 @@ and parse_expr buffer acc = parse
       let acc = flush buffer acc in
       parse_expr buffer (Var x :: acc) lexbuf }
 
-  | ['\n' '\t'] as c {
-    if c = '\n' then Lexing.new_line lexbuf ;
-    let acc = flush buffer acc in List.rev acc }
+  | '\t' | "" { List.rev (flush buffer acc ) }
 
   | [^ '\n' '\t'] as c { Buffer.add_char buffer c
                        ; parse_expr buffer acc lexbuf }
@@ -211,7 +209,8 @@ let _ =
      Format.fprintf output "end\n" ;
      print_footer output
    with Failure msg ->
-     failwith (Printf.sprintf "line: %d" lexbuf.lex_curr_p.pos_lnum) ) ;
+     failwith (Printf.sprintf "line: %d"
+                 lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
   close_in in_chan ;
   close_out out_chan
 }
