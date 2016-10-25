@@ -209,7 +209,8 @@ let _ =
      Format.fprintf output "end\n" ;
      print_footer output
    with Failure msg ->
-     failwith (Printf.sprintf "line: %d" lexbuf.lex_curr_p.pos_lnum) ) ;
+     failwith (Printf.sprintf "line: %d"
+                 lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
   close_in in_chan ;
   close_out out_chan
 }
