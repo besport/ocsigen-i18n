@@ -81,17 +81,25 @@ and parse_string_2 buffer = parse
 
 {
 
+let print_type fmt langs =
+  Format.fprintf fmt
+    "[%%%%shared type t = %a]\n"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
+       Format.pp_print_string ) langs
+
 let print_header fmt default_lang =
   Format.pp_print_string fmt @@
-  "[%%server\n\
+  "[%%shared let default_language = " ^ default_lang ^ "]\n\
+   [%%server\n\
    let _language_ =\n\
    Eliom_reference.Volatile.eref\n\
-   ~scope:Eliom_common.default_process_scope " ^ default_lang ^ "\n\
+   ~scope:Eliom_common.default_process_scope default_language\n\
    let get_lang () = Eliom_reference.Volatile.get _language_\n\
    let set_lang lang = Eliom_reference.Volatile.set _language_ lang\n\
    ]\n\
    [%%client\n\
-   let _language_ = ref " ^ default_lang ^ "\n\
+   let _language_ = ref default_language\n\
    let get_lang () = !_language_\n\
    let set_lang lang = _language_ := lang\n\
    ]\n\
@@ -167,19 +175,24 @@ let input_file = ref "-"
 let output_file = ref "-"
 let langs = ref ""
 let default_lang = ref ""
+let external_type = ref false
 
 let options = Arg.align
     [ ( "--langs", Arg.Set_string langs
       , " Comma-separated langs (from ocaml sum type) (e.g. Us,Fr). \
          Must be ordered as in source TSV file.")
     ; ( "--default-lang", Arg.Set_string default_lang
-      , " Set the default lang.")
+      , " Set the default lang (default is the first one in --langs).")
     ; ( "--input-file", Arg.Set_string input_file
       , " TSV file containing keys and translations. \
          If option is omited or set to -, read on stdin.")
     ; ( "--ouput-file", Arg.Set_string output_file
       , " File TSV file containing keys and translations. \
-         If option is omited or set to -, write on stdout.") ]
+         If option is omited or set to -, write on stdout.")
+    ; ( "--external-type", Arg.Set external_type
+      , " Values passed to --langs option come from a predefined type \
+         (do not generate the type).")
+    ]
 
 let usage = "usage: ocsigen-i18n-generator [options] [< input] [> output]"
 
@@ -195,11 +208,12 @@ let _ =
     | "-" -> stdout
     | file -> open_out file in
   let langs = Str.split (Str.regexp ",") !langs in
-  let default_lang = !default_lang in
+  let default_lang = match !default_lang with "" -> List.hd langs | x -> x in
   assert (List.mem default_lang langs) ;
   let lexbuf = Lexing.from_channel in_chan in
   (try let key_values = parse_lines langs [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
+     if not (!external_type) then print_type output langs ;
      print_header output default_lang ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
