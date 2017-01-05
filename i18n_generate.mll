@@ -91,6 +91,7 @@ let print_type fmt langs =
 let print_header fmt default_lang =
   Format.pp_print_string fmt @@
   "[%%shared let default_language = " ^ default_lang ^ "]\n\
+   [%%shared exception Unknown_language of string]\n\
    [%%server\n\
    let _language_ =\n\
    Eliom_reference.Volatile.eref\n\
@@ -108,6 +109,52 @@ let print_header fmt default_lang =
    [@@@ocaml.warning \"-27\"]\n\
    let pcdata = Eliom_content.Html.F.pcdata\n\
 "
+(** Print the function [string_of_lang] returning the string representation of a
+    value o type t. The string representation is simply the value as a string. For
+    example, the string representation of [Us] is ["Us"]
+*)
+let print_string_of_lang fmt langs =
+  (* Print a pattern matching case for the given language.
+     Example with lang = Fr:
+     | Fr -> "Fr"
+  *)
+  let pattern_matching_string_of_lang lang =
+    "| " ^ lang ^ " -> \"" ^ (String.lowercase_ascii lang) ^ "\""
+  in
+  (* Print all patterns matching cases for given languages *)
+  let complete_pattern_matching langs =
+    List.fold_right
+      (fun lang pattern_matching -> (pattern_matching_string_of_lang lang) ^ "\n" ^ pattern_matching)
+      langs
+      ""
+  in
+  Format.pp_print_string fmt @@
+  "let string_of_lang lang = match lang with\n" ^
+  (complete_pattern_matching langs)
+
+(** Print the function [lang_of_string] returning the value of type t which
+    corresponds to the given string. The exception [Unknown_language] is raised with
+    the given string if the language doesn't exist.
+*)
+let print_lang_of_string fmt langs =
+  (* Print a pattern matching case for the given language.
+     Example with lang = Fr:
+     | "Fr" -> Fr
+  *)
+  let pattern_matching_lang_of_string lang =
+    "| \"" ^ (String.lowercase_ascii lang) ^ "\" -> " ^ lang
+  in
+  (* Print all pattern matchings cases for given languages *)
+  let complete_pattern_matching langs =
+    List.fold_right
+      (fun lang pattern_matching -> (pattern_matching_lang_of_string lang) ^ "\n" ^ pattern_matching)
+      langs
+      ""
+  in
+  Format.pp_print_string fmt @@
+  "let lang_of_string lang = match lang with\n" ^
+  (complete_pattern_matching langs) ^
+  "| _ -> raise (Unknown_language lang)\n"
 
 let print_footer fmt = Format.pp_print_string fmt "]\n"
 
@@ -141,7 +188,6 @@ let print_module_body print_expr =
             (fun fmt (lang, tr) ->
                Format.fprintf fmt "| %s -> (fun %a () -> %a)"
                  lang print_args args print_expr tr) ) tr )
-
 
 let pp_print_list fmt printer =
   Format.fprintf fmt "[%a]"
@@ -215,6 +261,8 @@ let _ =
      let output = Format.formatter_of_out_channel out_chan in
      if not (!external_type) then print_type output langs ;
      print_header output default_lang ;
+     print_string_of_lang output langs ;
+     print_lang_of_string output langs ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
      Format.fprintf output "\nmodule S = struct\n" ;
