@@ -87,7 +87,7 @@ let print_list_of_langs fmt langs =
   | [head] -> head ^ "]"
   | head :: tail -> head ^ ";" ^ (aux tail)
   in
-  Format.pp_print_string fmt @@ "let%shared langs = [" ^ (aux langs) ^ "\n"
+  Format.pp_print_string fmt @@ "let%shared available_languages = [" ^ (aux langs) ^ "\n"
 
 let print_type fmt langs =
   Format.fprintf fmt
