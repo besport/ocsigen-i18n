@@ -91,6 +91,7 @@ let print_type fmt langs =
 let print_header fmt default_lang =
   Format.pp_print_string fmt @@
   "[%%shared let default_language = " ^ default_lang ^ "]\n\
+   [%%shared exception Unknown_language of string]\n\
    [%%server\n\
    let _language_ =\n\
    Eliom_reference.Volatile.eref\n\
@@ -108,6 +109,25 @@ let print_header fmt default_lang =
    [@@@ocaml.warning \"-27\"]\n\
    let pcdata = Eliom_content.Html.F.pcdata\n\
 "
+
+let lang_string fn pattern fmt langs =
+  Format.fprintf fmt "let %s = function %a\n" fn
+    (Format.pp_print_list (fun fmt x -> Format.fprintf fmt pattern x x) )
+    langs
+
+(** Print the function [string_of_lang] returning the string representation of a
+    value o type t. The string representation is simply the value as a string. For
+    example, the string representation of [Us] is ["Us"]
+*)
+let print_string_of_lang = lang_string "string_of_lang" "| %s -> %S"
+
+(** Print the function [lang_of_string] returning the value of type t which
+    corresponds to the given string. The exception [Unknown_language] is raised with
+    the given string if the language doesn't exist.
+*)
+let print_lang_of_string fmt langs =
+  lang_string "lang_of_string" "| %S -> %s" fmt langs ;
+  Format.pp_print_string fmt "| s -> raise (Unknown_language s)\n"
 
 let print_footer fmt = Format.pp_print_string fmt "]\n"
 
@@ -141,7 +161,6 @@ let print_module_body print_expr =
             (fun fmt (lang, tr) ->
                Format.fprintf fmt "| %s -> (fun %a () -> %a)"
                  lang print_args args print_expr tr) ) tr )
-
 
 let pp_print_list fmt printer =
   Format.fprintf fmt "[%a]"
@@ -215,6 +234,8 @@ let _ =
      let output = Format.formatter_of_out_channel out_chan in
      if not (!external_type) then print_type output langs ;
      print_header output default_lang ;
+     print_string_of_lang output langs ;
+     print_lang_of_string output langs ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
      Format.fprintf output "\nmodule S = struct\n" ;
