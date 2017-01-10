@@ -97,24 +97,20 @@ let print_type fmt langs =
 
 let print_header fmt default_lang =
   Format.pp_print_string fmt @@
-  "[%%shared let default_language = " ^ default_lang ^ "]\n\
-   [%%shared exception Unknown_language of string]\n\
-   [%%server\n\
-   let _language_ =\n\
+  "[%%shared exception Unknown_language of string]\n\
+   let%shared default_language = " ^ default_lang ^ "\n\
+   let%server _language_ =\n\
    Eliom_reference.Volatile.eref\n\
    ~scope:Eliom_common.default_process_scope default_language\n\
-   let get_lang () = Eliom_reference.Volatile.get _language_\n\
-   let set_lang lang = Eliom_reference.Volatile.set _language_ lang\n\
-   ]\n\
-   [%%client\n\
-   let _language_ = ref default_language\n\
-   let get_lang () = !_language_\n\
-   let set_lang lang = _language_ := lang\n\
-   ]\n\
+   let%server get_lang () = Eliom_reference.Volatile.get _language_\n\
+   let%server set_lang lang = Eliom_reference.Volatile.set _language_ lang\n\
+   let%client _language_ = ref default_language\n\
+   let%client get_lang () = !_language_\n\
+   let%client set_lang lang = _language_ := lang\n\
    \n\
-   [%%shared\n\
    [@@@ocaml.warning \"-27\"]\n\
-   let pcdata = Eliom_content.Html.F.pcdata\n\
+   let%shared pcdata = Eliom_content.Html.F.pcdata\n\
+   [%%shared\n\
 "
 
 let lang_string fn pattern fmt langs =
