@@ -82,12 +82,11 @@ and parse_string_2 buffer = parse
 {
 
 let print_list_of_langs fmt langs =
-  let rec aux = function
-  | [] -> "]"
-  | [head] -> head ^ "]"
-  | head :: tail -> head ^ ";" ^ (aux tail)
-  in
-  Format.pp_print_string fmt @@ "let%shared langs = [" ^ (aux langs) ^ "\n"
+  Format.fprintf fmt
+    "let%%shared langs = [%a]\n"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
+       Format.pp_print_string) langs
 
 let print_type fmt langs =
   Format.fprintf fmt
