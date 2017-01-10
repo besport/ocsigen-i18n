@@ -81,6 +81,13 @@ and parse_string_2 buffer = parse
 
 {
 
+let print_list_of_langs fmt langs =
+  Format.fprintf fmt
+    "let%%shared langs = [%a]\n"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
+       Format.pp_print_string) langs
+
 let print_type fmt langs =
   Format.fprintf fmt
     "[%%%%shared type t = %a]\n"
@@ -233,6 +240,7 @@ let _ =
   (try let key_values = parse_lines langs [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
      if not (!external_type) then print_type output langs ;
+     print_list_of_langs output langs ;
      print_header output default_lang ;
      print_string_of_lang output langs ;
      print_lang_of_string output langs ;
