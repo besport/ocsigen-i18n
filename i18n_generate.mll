@@ -81,35 +81,35 @@ and parse_string_2 buffer = parse
 
 {
 
-let print_list_of_langs fmt langs =
+let print_list_of_languages fmt languages =
   Format.fprintf fmt
-    "let%%shared langs = [%a]\n"
+    "let%%shared languages = [%a]\n"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
-       Format.pp_print_string) langs
+       Format.pp_print_string) languages
 
-let print_type fmt langs =
+let print_type fmt languages =
   Format.fprintf fmt
     "[%%%%shared type t = %a]\n"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
-       Format.pp_print_string ) langs
+       Format.pp_print_string ) languages
 
-let print_header fmt default_lang =
+let print_header fmt default_language =
   Format.pp_print_string fmt @@
-  "[%%shared let default_language = " ^ default_lang ^ "]\n\
+  "[%%shared let default_language = " ^ default_language ^ "]\n\
    [%%shared exception Unknown_language of string]\n\
    [%%server\n\
    let _language_ =\n\
    Eliom_reference.Volatile.eref\n\
    ~scope:Eliom_common.default_process_scope default_language\n\
-   let get_lang () = Eliom_reference.Volatile.get _language_\n\
-   let set_lang lang = Eliom_reference.Volatile.set _language_ lang\n\
+   let get_language () = Eliom_reference.Volatile.get _language_\n\
+   let set_language language = Eliom_reference.Volatile.set _language_ language\n\
    ]\n\
    [%%client\n\
    let _language_ = ref default_language\n\
-   let get_lang () = !_language_\n\
-   let set_lang lang = _language_ := lang\n\
+   let get_language () = !_language_\n\
+   let set_language language = _language_ := language\n\
    ]\n\
    \n\
    [%%shared\n\
@@ -117,23 +117,23 @@ let print_header fmt default_lang =
    let pcdata = Eliom_content.Html.F.pcdata\n\
 "
 
-let lang_string fn pattern fmt langs =
+let language_string fn pattern fmt languages =
   Format.fprintf fmt "let %s = function %a\n" fn
     (Format.pp_print_list (fun fmt x -> Format.fprintf fmt pattern x x) )
-    langs
+    languages
 
-(** Print the function [string_of_lang] returning the string representation of a
+(** Print the function [string_of_language] returning the string representation of a
     value o type t. The string representation is simply the value as a string. For
     example, the string representation of [Us] is ["Us"]
 *)
-let print_string_of_lang = lang_string "string_of_lang" "| %s -> %S"
+let print_string_of_language = language_string "string_of_language" "| %s -> %S"
 
-(** Print the function [lang_of_string] returning the value of type t which
+(** Print the function [language_of_string] returning the value of type t which
     corresponds to the given string. The exception [Unknown_language] is raised with
     the given string if the language doesn't exist.
 *)
-let print_lang_of_string fmt langs =
-  lang_string "lang_of_string" "| %S -> %s" fmt langs ;
+let print_language_of_string fmt languages =
+  language_string "language_of_string" "| %S -> %s" fmt languages ;
   Format.pp_print_string fmt "| s -> raise (Unknown_language s)\n"
 
 let print_footer fmt = Format.pp_print_string fmt "]\n"
@@ -141,13 +141,13 @@ let print_footer fmt = Format.pp_print_string fmt "]\n"
 type arg = M of string | O of string
 
 let print_module_body print_expr =
-  let args langs =
+  let args languages =
     let rec f a =
       function [] -> List.rev a
              | Var x :: t          -> f (M x :: a) t
              | Cond (x, _, _) :: t -> f (O x :: a) t
              | _ :: t              -> f a t in
-    List.map (f []) langs
+    List.map (f []) languages
     |> List.flatten
     |> List.sort_uniq compare in
   let print_args fmt args =
@@ -160,14 +160,14 @@ let print_module_body print_expr =
     ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
     (fun fmt (key, tr) ->
        let args = args (List.map snd tr) in
-       Format.fprintf fmt "let %s ?(lang = get_lang ()) () =\n\
+       Format.fprintf fmt "let %s ?(lang = get_language ()) () =\n\
                            match lang with\n%a"
          key
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
-            (fun fmt (lang, tr) ->
+            (fun fmt (language, tr) ->
                Format.fprintf fmt "| %s -> (fun %a () -> %a)"
-                 lang print_args args print_expr tr) ) tr )
+                 language print_args args print_expr tr) ) tr )
 
 let pp_print_list fmt printer =
   Format.fprintf fmt "[%a]"
@@ -199,16 +199,16 @@ let print_expr_string fmt key_values =
 
 let input_file = ref "-"
 let output_file = ref "-"
-let langs = ref ""
-let default_lang = ref ""
+let languages = ref ""
+let default_language = ref ""
 let external_type = ref false
 
 let options = Arg.align
-    [ ( "--langs", Arg.Set_string langs
-      , " Comma-separated langs (from ocaml sum type) (e.g. Us,Fr). \
+    [ ( "--languages", Arg.Set_string languages
+      , " Comma-separated languages (from ocaml sum type) (e.g. Us,Fr). \
          Must be ordered as in source TSV file.")
-    ; ( "--default-lang", Arg.Set_string default_lang
-      , " Set the default lang (default is the first one in --langs).")
+    ; ( "--default-language", Arg.Set_string default_language
+      , " Set the default language (default is the first one in --languages).")
     ; ( "--input-file", Arg.Set_string input_file
       , " TSV file containing keys and translations. \
          If option is omited or set to -, read on stdin.")
@@ -216,7 +216,7 @@ let options = Arg.align
       , " File TSV file containing keys and translations. \
          If option is omited or set to -, write on stdout.")
     ; ( "--external-type", Arg.Set external_type
-      , " Values passed to --langs option come from a predefined type \
+      , " Values passed to --languages option come from a predefined type \
          (do not generate the type).")
     ]
 
@@ -233,17 +233,20 @@ let _ =
     match !output_file with
     | "-" -> stdout
     | file -> open_out file in
-  let langs = Str.split (Str.regexp ",") !langs in
-  let default_lang = match !default_lang with "" -> List.hd langs | x -> x in
-  assert (List.mem default_lang langs) ;
+  let languages = Str.split (Str.regexp ",") !languages in
+  let default_language =
+    match !default_language with
+    | "" -> List.hd languages
+    | x -> x in
+  assert (List.mem default_language languages) ;
   let lexbuf = Lexing.from_channel in_chan in
-  (try let key_values = parse_lines langs [] lexbuf in
+  (try let key_values = parse_lines languages [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
-     if not (!external_type) then print_type output langs ;
-     print_list_of_langs output langs ;
-     print_header output default_lang ;
-     print_string_of_lang output langs ;
-     print_lang_of_string output langs ;
+     if not (!external_type) then print_type output languages ;
+     print_list_of_languages output languages ;
+     print_header output default_language ;
+     print_string_of_language output languages ;
+     print_language_of_string output languages ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
      Format.fprintf output "\nmodule S = struct\n" ;
