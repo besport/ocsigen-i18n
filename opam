@@ -2,7 +2,7 @@ opam-version: "1.2"
 ocaml-version: [ >= "4.02.0" ]
 
 name:         "ocsigen-i18n"
-version:      "1.0.0"
+version:      "2.0.0"
 author:       "Julien Sagot julien.sagot@besport.com"
 
 build:   [ make "build" ]
