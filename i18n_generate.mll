@@ -98,23 +98,19 @@ let print_type fmt ~variants =
 
 let print_header fmt ~default_language =
   Format.pp_print_string fmt @@
-  "[%%shared let default_language = " ^ default_language ^ "]\n\
-   [%%server\n\
-   let _language_ =\n\
+  "let%shared default_language = " ^ default_language ^ "\n\
+   let%server _language_ =\n\
    Eliom_reference.Volatile.eref\n\
    ~scope:Eliom_common.default_process_scope default_language\n\
-   let get_language () = Eliom_reference.Volatile.get _language_\n\
-   let set_language language = Eliom_reference.Volatile.set _language_ language\n\
-   ]\n\
-   [%%client\n\
-   let _language_ = ref default_language\n\
-   let get_language () = !_language_\n\
-   let set_language language = _language_ := language\n\
-   ]\n\
+   let%server get_language () = Eliom_reference.Volatile.get _language_\n\
+   let%server set_language language = \n\
+   Eliom_reference.Volatile.set _language_ language\n\
    \n\
-   [%%shared\n\
-   [@@@ocaml.warning \"-27\"]\n\
-   let pcdata = Eliom_content.Html.F.pcdata\n\
+   let%client _language_ = ref default_language\n\
+   let%client get_language () = !_language_\n\
+   let%client set_language language = _language_ := language\n\
+   \n\
+   let%shared pcdata = Eliom_content.Html.F.pcdata\n\
 "
 
 (** Print the function [string_of_language] returning the string representation of a
@@ -122,7 +118,7 @@ let print_header fmt ~default_language =
     example, the string representation of [Us] is ["Us"]
 *)
 let print_string_of_language fmt ~variants ~strings =
-  Format.pp_print_string fmt "let string_of_language = function \n" ;
+  Format.pp_print_string fmt "let%shared string_of_language = function \n" ;
   List.iter2 (fun v s -> Format.fprintf fmt "| %s -> %S" v s)
     variants strings ;
   Format.pp_print_string fmt "\n"
@@ -132,19 +128,17 @@ let print_string_of_language fmt ~variants ~strings =
     the given string if the language doesn't exist.
 *)
 let print_language_of_string fmt ~variants ~strings =
-  Format.pp_print_string fmt "let language_of_string = function\n" ;
+  Format.pp_print_string fmt "let%shared language_of_string = function\n" ;
   List.iter2 (fun v s -> Format.fprintf fmt "| %S -> %s" s v)
     variants strings ;
   Format.pp_print_string fmt "| s -> raise (Unknown_language s)\n"
 
 let print_guess_language_of_string fmt =
   Format.pp_print_string fmt
-    "let guess_language_of_string s = \n\
+    "let%shared guess_language_of_string s = \n\
      try language_of_string s \n\
      with Unknown_language _ -> \n\
      language_of_string (String.sub s 0 (String.index s '-'))\n"
-
-let print_footer fmt = Format.pp_print_string fmt "]\n"
 
 type arg = M of string | O of string
 
@@ -269,13 +263,14 @@ let _ =
        ; print_guess_language_of_string output) ;
      print_list_of_languages output ~variants ;
      print_header output ~default_language ;
+     Format.pp_print_string output "[%%shared\n" ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
      Format.fprintf output "\nmodule S = struct\n" ;
      print_module_body print_expr_string output key_values ;
      Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n" ;
-     print_footer output
+     Format.pp_print_string output "]\n"
    with Failure msg ->
      failwith (Printf.sprintf "line: %d"
                  lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
