@@ -2,7 +2,7 @@ opam-version: "1.2"
 available: [ ocaml-version >= "4.03" ]
 
 name:         "ocsigen-i18n"
-version:      "3.0.0"
+version:      "3.1.0"
 author:       "Julien Sagot julien.sagot@besport.com"
 maintainer:   "Julien Sagot julien.sagot@besport.com"
 
