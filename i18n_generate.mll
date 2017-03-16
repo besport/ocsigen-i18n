@@ -19,8 +19,9 @@
 (* Warning: Tsv file need to end with '\r' *)
 {
 type i18n_expr =
-  | Var of string                    (* This is a string *)
-  | Str of string                    (* {{ user }} *)
+  | Var of string                    (* {{ user }} *)
+  | Var_typed of string * string     (* {{ n %.2f }} *)
+  | Str of string                    (* This is a string *)
   | Cond of string * string * string (* {{{ many ? s || }}} *)
 
 let flush buffer acc =
@@ -60,9 +61,13 @@ and parse_expr buffer acc = parse
     parse_expr buffer (Cond (c, s1, s2) :: acc) lexbuf
   }
 
-  | "{{" " "* (id as x) " "* "}}" {
+  | "{{" ' '* (id as x) ' '* "}}" {
       let acc = flush buffer acc in
       parse_expr buffer (Var x :: acc) lexbuf }
+
+  | "{{" ' '* (id as x) ' '* ('%' [^ ' ' '}']+ as f)  ' '* "}}" {
+      let acc = flush buffer acc in
+      parse_expr buffer (Var_typed (x, f) :: acc) lexbuf }
 
   | '\t' | "" { List.rev (flush buffer acc ) }
 
@@ -147,6 +152,7 @@ let print_module_body print_expr =
     let rec f a =
       function [] -> List.rev a
              | Var x :: t          -> f (M x :: a) t
+             | Var_typed (x, _) :: t -> f (M x :: a) t
              | Cond (x, _, _) :: t -> f (O x :: a) t
              | _ :: t              -> f a t in
     List.map (f []) languages
@@ -183,6 +189,8 @@ let print_expr_html fmt key_values =
     (fun fmt -> function
        | Str s -> Format.fprintf fmt "[pcdata \"%s\"]" s
        | Var v -> Format.pp_print_string fmt v
+       | Var_typed (v, f) ->
+         Format.fprintf fmt "[pcdata (Printf.sprintf \"%s\" %s)]" f v
        | Cond (c, s1, s2) ->
          Format.fprintf fmt "[pcdata (if %s then \"%s\" else \"%s\")]"
            c s1 s2)
@@ -194,6 +202,8 @@ let print_expr_string fmt key_values =
     (fun fmt -> function
        | Str s -> Format.fprintf fmt "\"%s\"" s
        | Var v -> Format.pp_print_string fmt v
+       | Var_typed (v, f) ->
+         Format.fprintf fmt "(Printf.sprintf \"%s\" %s)" f v
        | Cond (c, s1, s2) ->
          Format.fprintf fmt "(if %s then \"%s\" else \"%s\")"
            c s1 s2)
