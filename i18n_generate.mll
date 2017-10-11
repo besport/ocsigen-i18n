@@ -142,8 +142,10 @@ let print_guess_language_of_string fmt =
   Format.pp_print_string fmt
     "let%shared guess_language_of_string s = \n\
      try language_of_string s \n\
-     with Unknown_language _ -> \n\
-     language_of_string (String.sub s 0 (String.index s '-'))\n"
+     with Unknown_language _ as e -> \n\
+     try language_of_string (String.sub s 0 (String.index s '-')) \n\
+     with Not_found -> \n\
+     raise e \n"
 
 type arg = M of string | O of string
 
