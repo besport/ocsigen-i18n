@@ -47,15 +47,27 @@ use.
 foo	This is a simple key.	Ceci est une clé toute simple.
 bar	I am {{x}}.	Je suis {{x}}.
 baz	There {{{c?are||is}}} apple{{{c?s||}}} here!	Il y a {{{c?des||une}}} pomme{{{c?s||}}} ici !
+bu	I am {{x %s}} ({{n %d}}).	Je suis {{x %s}} ({{n %d}}).
 ```
+
+- `{{x}}` define a variable labeled `~x`
+- `{{x %d}}` define a variable labeled `~x`, and `%d` format is used to
+  display `x` as a string.
+- `{{x?a||b}}` define an optionnal boolean value `?x`.
+  If `x` is `true` then `a` will be displayed.
+  If it is `false` (which is default), then `b` is choosen.
 
 #### Using the templates
 
 ```ocaml
 [%i18n foo]
 [%i18n bar ~x:[%i18n a_human]]
+[%i18n bar ~x:[ pcdata "Jean-Michel ("
+              ; pcdata @@ string_of_int id
+              ; pcdata ")" ] ]
 [%i18n baz]
 [%i18n baz ~c:(nb > 1)]
+[%i18n bu ~x:"Jean-Michel" ~n:id ]
 ```
 
 This will generate an HTML fragment (a list of elements). If you are interested
