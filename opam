@@ -18,4 +18,5 @@ remove:  [ ["rm" "-f" "%{bin}%/ocsigen-i18n-generator"]
 
 depends: [
   "ocamlfind" { build }
+  "tyxml" { >= "4.3.0" }
 ]
