@@ -115,7 +115,7 @@ let print_header fmt ~default_language =
    let%client get_language () = !_language_\n\
    let%client set_language language = _language_ := language\n\
    \n\
-   let%shared pcdata = Eliom_content.Html.F.pcdata\n\
+   let%shared txt = Eliom_content.Html.F.txt\n\
 "
 
 (** Print the function [string_of_language] returning the string representation of a
@@ -189,12 +189,12 @@ let print_expr_html fmt key_values =
   Format.fprintf fmt "List.flatten " ;
   pp_print_list fmt
     (fun fmt -> function
-       | Str s -> Format.fprintf fmt "[pcdata \"%s\"]" s
+       | Str s -> Format.fprintf fmt "[txt \"%s\"]" s
        | Var v -> Format.pp_print_string fmt v
        | Var_typed (v, f) ->
-         Format.fprintf fmt "[pcdata (Printf.sprintf \"%s\" %s)]" f v
+         Format.fprintf fmt "[txt (Printf.sprintf \"%s\" %s)]" f v
        | Cond (c, s1, s2) ->
-         Format.fprintf fmt "[pcdata (if %s then \"%s\" else \"%s\")]"
+         Format.fprintf fmt "[txt (if %s then \"%s\" else \"%s\")]"
            c s1 s2)
     key_values
 
