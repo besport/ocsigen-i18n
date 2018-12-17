@@ -14,7 +14,7 @@ remove:  [ ["rm" "-f" "%{bin}%/ocsigen-i18n-generator"]
            ["rm" "-f" "%{bin}%/ocsigen-i18n-checker"] ]
 
 depends: [
-  "ocaml" {>= "4.03"}
+  "ocaml" {>= "4.06.1"}
   "ocamlfind" {build}
   "tyxml" {< "4.3.0"}
 ]
