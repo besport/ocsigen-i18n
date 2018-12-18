@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name:         "ocsigen-i18n"
-version:      "3.2.0"
+version:      "3.3.0"
 synopsis:     "I18n made easy for web sites written with eliom."
 maintainer:   "Jan Rochel <jan@besport.com>"
 
