@@ -16,7 +16,7 @@ remove:  [ ["rm" "-f" "%{bin}%/ocsigen-i18n-generator"]
 depends: [
   "ocaml" {>= "4.06.1"}
   "ocamlfind" {build}
-  "tyxml" {< "4.3.0"}
+  "tyxml" { >= "4.3.0" }
 ]
 authors: "Julien Sagot"
 flags: light-uninstall
