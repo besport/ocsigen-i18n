@@ -107,7 +107,10 @@ let print_header fmt ~default_language =
    let%server _language_ =\n\
    Eliom_reference.Volatile.eref\n\
    ~scope:Eliom_common.default_process_scope default_language\n\
-   let%server get_language () = Eliom_reference.Volatile.get _language_\n\
+   let%server get_language () =\n\
+     if Eliom_request_info.in_request_handler ()\n\
+       then Eliom_reference.Volatile.get _language_\n\
+       else default_language\n\
    let%server set_language language = \n\
    Eliom_reference.Volatile.set _language_ language\n\
    \n\
