@@ -26,11 +26,7 @@ let module_name = ref ""
 let mk_ident i =
   parse (!module_name ^ ".Tr." ^ (String.concat "." (Longident.flatten i.txt)))
 
-let unit loc = { pexp_desc =
-               Pexp_construct ( Location.mknoloc (Longident.Lident "()")
-                              , None )
-           ; pexp_loc = loc
-           ; pexp_attributes = [] }
+let unit loc = [%expr ()]
 
 let lang_args = function
   | ((Labelled("?lang"), _) as lang) :: args
