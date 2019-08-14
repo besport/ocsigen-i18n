@@ -15,7 +15,7 @@ $(CHECKER): i18n_ppx_common.ml i18n_ppx_checker.ml
 	${OCAMLC} -package str -package compiler-libs.common -linkpkg -o $@ $^
 
 ${REWRITER}: i18n_ppx_common.ml i18n_ppx_rewriter.ml
-	${OCAMLC} -package str -package compiler-libs.common -linkpkg -o $@ $^
+	${OCAMLC} -package str,compiler-libs.common,ppx_tools.metaquot -linkpkg -o $@ $^
 
 clean:
 	-rm -f *.cmi *.cmo *~ *#
