@@ -170,14 +170,15 @@ let print_module_body print_expr =
     ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
     (fun fmt (key, tr) ->
        let args = args (List.map snd tr) in
-       Format.fprintf fmt "let %s ?(lang = get_language ()) () =\n\
+       Format.fprintf fmt "let %s ?(lang = get_language ()) () %a () =\n\
                            match lang with\n%a"
          key
+         print_args args
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
             (fun fmt (language, tr) ->
-               Format.fprintf fmt "| %s -> (fun %a () -> %a)"
-                 language print_args args print_expr tr) ) tr )
+               Format.fprintf fmt "| %s -> %a"
+                 language print_expr tr) ) tr )
 
 let pp_print_list fmt printer =
   Format.fprintf fmt "[%a]"
@@ -186,30 +187,44 @@ let pp_print_list fmt printer =
        printer)
 
 let print_expr_html fmt key_values =
-  Format.fprintf fmt "List.flatten " ;
-  pp_print_list fmt
-    (fun fmt -> function
+  let print_key_value fmt =
+    function
        | Str s -> Format.fprintf fmt "[txt \"%s\"]" s
        | Var v -> Format.pp_print_string fmt v
        | Var_typed (v, f) ->
          Format.fprintf fmt "[txt (Printf.sprintf \"%s\" %s)]" f v
        | Cond (c, s1, s2) ->
          Format.fprintf fmt "[txt (if %s then \"%s\" else \"%s\")]"
-           c s1 s2)
-    key_values
+           c s1 s2
+  in
+  match key_values with
+  | [] ->
+     assert false
+  | [key_value] ->
+     print_key_value fmt key_value
+  | _ ->
+     Format.fprintf fmt "List.flatten " ;
+     pp_print_list fmt print_key_value key_values
 
 let print_expr_string fmt key_values =
-  Format.fprintf fmt "String.concat \"\" " ;
-  pp_print_list fmt
-    (fun fmt -> function
-       | Str s -> Format.fprintf fmt "\"%s\"" s
-       | Var v -> Format.pp_print_string fmt v
-       | Var_typed (v, f) ->
-         Format.fprintf fmt "(Printf.sprintf \"%s\" %s)" f v
-       | Cond (c, s1, s2) ->
-         Format.fprintf fmt "(if %s then \"%s\" else \"%s\")"
-           c s1 s2)
-    key_values
+  let print_key_value fmt =
+    function
+    | Str s -> Format.fprintf fmt "\"%s\"" s
+    | Var v -> Format.pp_print_string fmt v
+    | Var_typed (v, f) ->
+       Format.fprintf fmt "(Printf.sprintf \"%s\" %s)" f v
+    | Cond (c, s1, s2) ->
+       Format.fprintf fmt "(if %s then \"%s\" else \"%s\")"
+         c s1 s2
+    in
+    match key_values with
+    | [] ->
+       assert false
+    | [key_value] ->
+       print_key_value fmt key_value
+    | _ ->
+       Format.fprintf fmt "String.concat \"\" " ;
+       pp_print_list fmt print_key_value key_values
 
 let input_file = ref "-"
 let output_file = ref "-"
