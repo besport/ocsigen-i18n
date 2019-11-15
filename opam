@@ -17,4 +17,3 @@ depends: [
   "tyxml" { >= "4.3.0" }
 ]
 authors: "Julien Sagot"
-flags: light-uninstall
