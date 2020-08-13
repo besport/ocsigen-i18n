@@ -21,10 +21,10 @@ open Asttypes
 open Parsetree
 open Longident
 
-let module_name = ref ""
+let default_module_name = ref ""
 
 let mk_ident i =
-  parse (!module_name ^ ".Tr." ^ (String.concat "." (Longident.flatten i.txt)))
+  parse (!default_module_name ^ ".Tr." ^ (String.concat "." (Longident.flatten i.txt)))
 
 let unit loc = [%expr ()]
 
@@ -49,6 +49,6 @@ let apply expr e i args =
 (* Usage: -ppx "i18n_ppx_rewrite.native Module_name" *)
 let _ =
   register "i18n" (fun argv ->
-    module_name := List.hd argv ;
+    default_module_name := List.hd argv ;
     { default_mapper
       with expr = I18n_ppx_common.mkmapper default_mapper ident apply  })
