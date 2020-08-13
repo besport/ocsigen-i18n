@@ -36,10 +36,10 @@ let check files =
     in read [] in
   let keys = Hashtbl.create (List.length files) in
   List.iter (fun x -> Hashtbl.add keys x false) k ;
-  let ident expr e i =
+  let ident _ expr e i =
     Hashtbl.replace keys (Longident.flatten i.txt |> List.rev |> List.hd) true
   ; expr in
-  let apply expr e i args =
+  let apply _ expr e i args =
     Hashtbl.replace keys (Longident.flatten i.txt |> List.rev |> List.hd) true
   ; expr in
   let iterator =
