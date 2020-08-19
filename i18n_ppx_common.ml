@@ -28,10 +28,10 @@ let mkmapper default ident apply =
         | PStr [ { pstr_desc = Pstr_eval (e, a) } ] ->
           begin match e.pexp_desc with
             | Pexp_ident i ->
-              ident expr e i
+              ident None expr e i
             | Pexp_apply ({ pexp_desc = Pexp_ident i } as e, args) ->
               let args = List.map (fun (l, e) -> l, mapper.expr mapper e) args in
-              apply expr e i args
+              apply None expr e i args
             | _ -> assert false end
         | _ -> assert false end
     | x -> default.expr mapper x

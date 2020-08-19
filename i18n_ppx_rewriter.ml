@@ -21,10 +21,29 @@ open Asttypes
 open Parsetree
 open Longident
 
-let module_name = ref ""
+let default_module_name = ref ""
 
-let mk_ident i =
-  parse (!module_name ^ ".Tr." ^ (String.concat "." (Longident.flatten i.txt)))
+let mk_ident module_name_o i =
+  let module_name, safe_ident =
+    match i.txt with 
+    (* CASE 1: [%i18n ident ... ] *)
+    | Lident _ -> !default_module_name, i.txt
+    (* CASE 2: [%i18n S.ident ... ] *)
+    | Ldot (Lident "S", _) -> !default_module_name, i.txt
+    (* CASE 3: [%i18n OtherMod.ident ...] *)
+    | Ldot (Lident module_name, s) -> module_name, Lident s
+    (* CASE 4 : [%i18n OtherMod.S.ident ...] *)
+    | Ldot (Ldot (Lident module_name, "S"), s) ->
+      module_name, Ldot (Lident "S", s)
+    (* CASE X : [%i18n OtherModA.OtherModB.ident ...]. Illegal. *)
+    | i -> let err_msg =
+             Format.asprintf "%a is not a valid i18n expression"
+               Pprintast.longident i
+      in failwith err_msg
+  in
+  parse
+    (module_name
+     ^ ".Tr." ^ (String.concat "." (Longident.flatten safe_ident)))
 
 let unit loc = [%expr ()]
 
@@ -38,17 +57,21 @@ let apply e args =
   Pexp_apply (e, lang @ [ ( Nolabel, unit e.pexp_loc ) ]
                  @ args @ [ ( Nolabel, unit e.pexp_loc ) ] )
 
-let ident expr e i =
-  let e' = { e with pexp_desc = Pexp_ident { i with txt = mk_ident i } } in
+let ident module_name_o expr e i =
+  let e' =
+    { e with pexp_desc = Pexp_ident { i with txt = mk_ident module_name_o i } }
+  in
   { expr with pexp_desc = apply e' [] }
 
-let apply expr e i args =
-  let e' = { e with pexp_desc = Pexp_ident { i with txt = mk_ident i } } in
+let apply module_name_o expr e i args =
+  let e' =
+    { e with pexp_desc = Pexp_ident { i with txt = mk_ident module_name_o i } }
+  in
   { expr with pexp_desc = apply e' args }
 
 (* Usage: -ppx "i18n_ppx_rewrite.native Module_name" *)
 let _ =
   register "i18n" (fun argv ->
-    module_name := List.hd argv ;
-    { default_mapper
-      with expr = I18n_ppx_common.mkmapper default_mapper ident apply  })
+      default_module_name := List.hd argv ;
+      { default_mapper
+        with expr = I18n_ppx_common.mkmapper default_mapper ident apply  })
