@@ -22,19 +22,22 @@ open Parsetree
 open Longident
 
 let default_module_name = ref ""
+let module_prefix = ref ""
+let module_suffix = ref ""
 
 let mk_ident module_name_o i =
   let module_name, safe_ident =
-    match i.txt with 
+    match i.txt with
     (* CASE 1: [%i18n ident ... ] *)
     | Lident _ -> !default_module_name, i.txt
     (* CASE 2: [%i18n S.ident ... ] *)
     | Ldot (Lident "S", _) -> !default_module_name, i.txt
     (* CASE 3: [%i18n OtherMod.ident ...] *)
-    | Ldot (Lident module_name, s) -> module_name, Lident s
+    | Ldot (Lident module_name, s) ->
+     !module_prefix ^ module_name ^ !module_suffix, Lident s
     (* CASE 4 : [%i18n OtherMod.S.ident ...] *)
     | Ldot (Ldot (Lident module_name, "S"), s) ->
-      module_name, Ldot (Lident "S", s)
+     !module_prefix ^ module_name ^ !module_suffix, Ldot (Lident "S", s)
     (* CASE X : [%i18n OtherModA.OtherModB.ident ...]. Illegal. *)
     | i -> let err_msg =
              Format.asprintf "%a is not a valid i18n expression"
@@ -70,8 +73,15 @@ let apply module_name_o expr e i args =
   { expr with pexp_desc = apply e' args }
 
 (* Usage: -ppx "i18n_ppx_rewrite.native Module_name" *)
+let options_spec =
+  ["--prefix", Arg.Set_string module_prefix, "The prefix added to module names"
+  ;"--suffix", Arg.Set_string module_suffix, "The suffix added to module names"]
+
 let _ =
   register "i18n" (fun argv ->
-      default_module_name := List.hd argv ;
+      Arg.parse_argv ~current:(ref (0)) (Array.of_list ("Ocsigen-i18n-rewriter"::argv)) options_spec
+      (fun module_name -> default_module_name := module_name)
+      "i18n_ppx_rewrite.native [OPTIONS] DEFAULT_MODULE";
+      if !default_module_name = "" then invalid_arg "Missing default module name";
       { default_mapper
         with expr = I18n_ppx_common.mkmapper default_mapper ident apply  })
