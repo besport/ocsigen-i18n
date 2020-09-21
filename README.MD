@@ -12,6 +12,7 @@ usage: ocsigen-i18n-generator [options] [< input] [> output]
   --input-file        TSV file containing keys and translations. If option is omited or set to -, read on stdin.
   --ouput-file        File TSV file containing keys and translations. If option is omitted or set to -, write on stdout.
   --external-type     Values passed to --languages option come from a predefined type (do not generate the type nor from/to string functions).
+  --primary           Generated file is secondary and depends on given primary file.
   -help               Display this list of options
   --help              Display this list of options
 ```
