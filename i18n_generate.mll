@@ -101,17 +101,29 @@ let print_type fmt ~variants =
        ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
        Format.pp_print_string) variants
 
-let print_header fmt ~default_language =
+let print_header fmt ?primary_module ~default_language () =
+  let server_language_reference =
+    match primary_module with
+    | None -> "Eliom_reference.Volatile.eref\n\
+               ~scope:Eliom_common.default_process_scope default_language"
+    | Some module_name -> module_name ^ "._language_"
+  and client_language_reference =
+    match primary_module with
+    | None -> "ref default_language"
+    | Some module_name -> module_name ^ "._language_"
+  and default_lang =
+    match primary_module with
+    | None -> "let%shared default_language = " ^ default_language ^ "\n"
+    | Some module_name -> ""
+  in
   Format.pp_print_string fmt @@
-  "let%shared default_language = " ^ default_language ^ "\n\
-   let%server _language_ =\n\
-   Eliom_reference.Volatile.eref\n\
-   ~scope:Eliom_common.default_process_scope default_language\n\
+  default_lang ^
+   "let%server _language_ = " ^ server_language_reference ^ "\n\
    let%server get_language () = Eliom_reference.Volatile.get _language_\n\
    let%server set_language language = \n\
    Eliom_reference.Volatile.set _language_ language\n\
    \n\
-   let%client _language_ = ref default_language\n\
+   let%client _language_ = " ^ client_language_reference ^ "\n\
    let%client get_language () = !_language_\n\
    let%client set_language language = _language_ := language\n\
    \n\
@@ -231,6 +243,7 @@ let output_file = ref "-"
 let languages = ref ""
 let default_language = ref ""
 let external_type = ref false
+let primary_file = ref ""
 
 let options = Arg.align
     [ ( "--languages", Arg.Set_string languages
@@ -248,16 +261,23 @@ let options = Arg.align
     ; ( "--external-type", Arg.Set external_type
       , " Values passed to --languages option come from a predefined type \
          (do not generate the type nor from/to string functions).")
+    ; ( "--primary", Arg.Set_string primary_file
+      , " Generated file is secondary and depends on given primary file.")
     ]
 
 let usage = "usage: ocsigen-i18n-generator [options] [< input] [> output]"
 
 let _ = Arg.parse options (fun s -> ()) usage
 
-let normalize_type s =
+let normalize_type ?primary_module s =
+  let constr =
   String.lowercase_ascii s
   |> Str.(global_replace (regexp "-") "_")
   |> String.capitalize_ascii
+  in
+  match primary_module with
+  | None -> constr
+  | Some module_name -> module_name ^ "." ^ constr
 
 let _ =
   let in_chan =
@@ -268,28 +288,34 @@ let _ =
     match !output_file with
     | "-" -> stdout
     | file -> open_out file in
+  let primary_module = match !primary_file with
+  | "" -> None
+  | file -> let base = Filename.remove_extension file in
+            Some (String.capitalize_ascii base)
+  in
   let strings = Str.split (Str.regexp ",") !languages in
   let variants =
-    if not (!external_type) then List.map normalize_type strings
+    if !primary_file = "" || not (!external_type)
+    then List.map (normalize_type ?primary_module) strings
     else strings in
   let default_language =
     match !default_language with
     | "" -> (List.hd variants)
     | x ->
-      let x = normalize_type x in
+      let x = normalize_type ?primary_module x in
       assert (List.mem x variants) ;
       x in
   let lexbuf = Lexing.from_channel in_chan in
   (try
      let key_values = parse_lines variants [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
-     if not (!external_type) then
+     if primary_module = None && not (!external_type) then
        ( print_type output ~variants
        ; print_string_of_language output ~variants ~strings
        ; print_language_of_string output ~variants ~strings
        ; print_guess_language_of_string output) ;
      print_list_of_languages output ~variants ;
-     print_header output ~default_language ;
+     print_header output ?primary_module ~default_language () ;
      Format.pp_print_string output "[%%shared\n" ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
