@@ -44,9 +44,11 @@ let mk_ident module_name_o i =
                Pprintast.longident i
       in failwith err_msg
   in
-  parse
-    (module_name
-     ^ ".Tr." ^ (String.concat "." (Longident.flatten safe_ident)))
+  match
+    Longident.unflatten (module_name :: "Tr" :: Longident.flatten safe_ident)
+  with
+  | None   -> assert false
+  | Some i -> i
 
 let unit loc = [%expr ()]
 
@@ -75,13 +77,14 @@ let apply module_name_o expr e i args =
 (* Usage: -ppx "i18n_ppx_rewrite.native Module_name" *)
 let options_spec =
   ["--prefix", Arg.Set_string module_prefix, "The prefix added to module names"
-  ;"--suffix", Arg.Set_string module_suffix, "The suffix added to module names"]
+  ;"--suffix", Arg.Set_string module_suffix, "The suffix added to module names"
+  ;"--default-module", Arg.Set_string default_module_name,
+   "Name of the default module"]
 
 let _ =
-  register "i18n" (fun argv ->
-      Arg.parse_argv ~current:(ref (0)) (Array.of_list ("Ocsigen-i18n-rewriter"::argv)) options_spec
-      (fun module_name -> default_module_name := module_name)
-      "i18n_ppx_rewrite.native [OPTIONS] DEFAULT_MODULE";
+  Migrate_parsetree.Driver.register ~name:"i18n" ~args:options_spec
+    Migrate_parsetree.Versions.ocaml_411
+    (fun _config _cookies ->
       if !default_module_name = "" then invalid_arg "Missing default module name";
       { default_mapper
         with expr = I18n_ppx_common.mkmapper default_mapper ident apply  })
