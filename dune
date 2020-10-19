@@ -2,46 +2,34 @@
 (library
   (name ppx)
   (public_name ocsigen-i18n)
-  (libraries common)
   (kind ppx_rewriter)
   (modules i18n_ppx_rewriter)
-  (preprocess (pps ppxlib.metaquot)))
+  (libraries ppxlib))
 
 (executable
   (name i18n_rewriter)
   (public_name ocsigen-i18n-rewriter)
   (package ocsigen-i18n)
   (libraries ppx)
-  (modules i18n_rewriter)
-  (preprocess (pps ppxlib.metaquot)))
+  (modules i18n_rewriter))
 
 (executable
   (name i18n_generate)
   (public_name ocsigen-i18n-generator)
   (package ocsigen-i18n)
   (modules i18n_generate)
-  (libraries str)
-  (preprocess (pps ppxlib.metaquot)))
+  (libraries str))
 
 (executable
   (name i18n_ppx_checker)
   (public_name ocsigen-i18n-checker)
   (package ocsigen-i18n)
   (modules i18n_ppx_checker)
-  (libraries str common)
-  (preprocess (pps ppxlib.metaquot)))
-
-(library
-  (name common)
-  (wrapped false)
-  (public_name ocsigen-i18n.common)
-  (modules i18n_ppx_common)
-  (libraries compiler-libs.common ocaml-migrate-parsetree)
-  (preprocess (pps ppxlib.metaquot)))
+  (libraries str ppxlib))
 
 (ocamllex i18n_generate)
 
 (env
  (_
-  (flags (:standard -w @A-4-9-27-33))
+  (flags (:standard -w @A-4-27))
 ))

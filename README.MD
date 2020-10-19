@@ -26,7 +26,7 @@ The ppx supports two general forms of constructions:
 You can use `ocsigen-i18n-generator` to generate multiple .eliom files
 from different TSV files. One of those will be the "default" one.
 
-Use the `-ppx 'ocsigen-i18n-rewriter DEFAULT'` where `DEFAULT`
+Use the `-ppx 'ocsigen-i18n-rewriter --default-module DEFAULT'` where `DEFAULT`
 is the name of the module generated with `ocsigen-i18n-generator`
 you wish to use as a default for all extension expressions
 (basename of the output file)
@@ -53,7 +53,7 @@ it would be likely to end up with expressions like `[%i18n I18n_a.entry]`.
 
 This is redundant and heavy. So, **if you like**, you can auto-prefix and auto-suffix your module names.
 
-Calling the rewriter with `-ppx 'ocsigen-i18n-rewriter --prefix Pr_ --suffix _i18n DEFAULT'`
+Calling the rewriter with `-ppx 'ocsigen-i18n-rewriter --prefix Pr_ --suffix _i18n --default-module DEFAULT'`
 will prefix and suffix all **custom modules** (i.e. not the `DEFAULT` one) with `Pr_` and `_i18n`.
 
 As such, `[%i18n Feature.foo]` will become `Pr_Feature_i18n.foo ()`,
