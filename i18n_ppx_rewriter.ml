@@ -75,8 +75,9 @@ let apply module_name_o expr e i args =
 (* Usage: -ppx "i18n_ppx_rewrite.native Module_name" *)
 let options_spec =
   ["--prefix", Arg.Set_string module_prefix, "The prefix added to module names"
-  ;"--suffix", Arg.Set_string module_suffix, "The suffix added to module names"]
-
+  ;"--suffix", Arg.Set_string module_suffix, "The suffix added to module names"
+  ;"--default-language", Arg.Set_string default_module_name, "The default module name"]
+  
 let _ =
   register "i18n" (fun argv ->
       Arg.parse_argv ~current:(ref (0)) (Array.of_list ("Ocsigen-i18n-rewriter"::argv)) options_spec
