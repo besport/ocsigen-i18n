@@ -18,8 +18,6 @@
 
 open Ppxlib
 
-(* Compiler:
- * ocamlbuild -pkg compiler-libs.common -pkg str i18n_ppx_checker.native *)
 (* Usage: i18n_ppx_checker.native files < i18n.tsv *)
 
 let expand ident ~loc:location ~path:_ expr =
