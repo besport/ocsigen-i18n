@@ -13,6 +13,6 @@ build:   [ "dune" "build" "-p" name "-j" jobs ]
 depends: [
   "ocaml" {>= "4.08"}
   "ocamlfind" {build}
-  "ppxlib"
+  "ppxlib" {<= "0.20"}
 ]
 authors: "Julien Sagot"
