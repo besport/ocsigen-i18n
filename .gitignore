@@ -1,8 +1,3 @@
-*.cmi
-*.cmx
-*.o
-ocsigen-i18n-rewriter
-ocsigen-i18n-generator
-ocsigen-i18n-checker
-i18n_generate.ml
-_opam/
+_build
+.merlin
+*~

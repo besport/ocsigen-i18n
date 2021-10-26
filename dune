@@ -1,0 +1,35 @@
+
+(library
+  (name ppx)
+  (public_name ocsigen-i18n)
+  (kind ppx_rewriter)
+  (modules i18n_ppx_rewriter)
+  (libraries ppxlib))
+
+(executable
+  (name i18n_rewriter)
+  (public_name ocsigen-i18n-rewriter)
+  (package ocsigen-i18n)
+  (libraries ppx)
+  (modules i18n_rewriter))
+
+(executable
+  (name i18n_generate)
+  (public_name ocsigen-i18n-generator)
+  (package ocsigen-i18n)
+  (modules i18n_generate)
+  (libraries str))
+
+(executable
+  (name i18n_ppx_checker)
+  (public_name ocsigen-i18n-checker)
+  (package ocsigen-i18n)
+  (modules i18n_ppx_checker)
+  (libraries str ppxlib))
+
+(ocamllex i18n_generate)
+
+(env
+ (_
+  (flags (:standard -w @A-4-27-70))
+))
