@@ -64,7 +64,8 @@ let check files =
     let ast = Ppxlib.Parse.implementation (Lexing.from_channel ch) in
     ignore (iterator#structure
               (Expansion_context.Base.top_level
-                 ~tool_name:"i18n_ppx_checker" ~file_path:file)
+                 ~tool_name:"i18n_ppx_checker"
+                 ~file_path:file ~input_name:file)
               ast) ;
     close_in ch in
   List.iter process_file files ;

@@ -31,5 +31,5 @@
 
 (env
  (_
-  (flags (:standard -w @A-4-27))
+  (flags (:standard -w @A-4-27-70))
 ))
