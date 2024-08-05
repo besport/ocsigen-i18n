@@ -244,7 +244,7 @@ let languages = ref ""
 let default_language = ref ""
 let external_type = ref false
 let primary_file = ref ""
-
+let file_part = ref ""
 let options = Arg.align
     [ ( "--languages", Arg.Set_string languages
       , " Comma-separated languages (e.g. en,fr-fr, or Foo.Fr,Foo.Us if \
@@ -263,6 +263,8 @@ let options = Arg.align
          (do not generate the type nor from/to string functions).")
     ; ( "--primary", Arg.Set_string primary_file
       , " Generated file is secondary and depends on given primary file.")
+    ; ( "--file-part", Arg.Set_string file_part
+      , " Part of the file that's generated (header or body).")
     ]
 
 let usage = "usage: ocsigen-i18n-generator [options] [< input] [> output]"
