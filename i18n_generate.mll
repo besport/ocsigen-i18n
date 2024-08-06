@@ -311,13 +311,13 @@ let _ =
   (try
      let key_values = parse_lines variants [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
-     if primary_module = None && not (!external_type) then
+     if (!file_part = "header") then 
        ( print_type output ~variants
        ; print_string_of_language output ~variants ~strings
        ; print_language_of_string output ~variants ~strings
-       ; print_guess_language_of_string output) ;
+       ; print_guess_language_of_string output ;
      print_list_of_languages output ~variants ;
-     print_header output ?primary_module ~default_language () ;
+     print_header output ?primary_module ~default_language () ) else (
      Format.pp_print_string output "[%%shared\n" ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body print_expr_html output key_values ;
@@ -325,7 +325,7 @@ let _ =
      print_module_body print_expr_string output key_values ;
      Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n" ;
-     Format.pp_print_string output "]\n"
+     Format.pp_print_string output "]\n")
    with Failure msg ->
      failwith (Printf.sprintf "line: %d"
                  lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
