@@ -161,7 +161,7 @@ let print_guess_language_of_string fmt =
 
 type arg = M of string | O of string
 
-let print_module_body print_expr =
+let print_module_body_eliom print_expr =
   let args languages =
     let rec f a =
       function [] -> List.rev a
@@ -185,6 +185,39 @@ let print_module_body print_expr =
        Format.fprintf fmt "let %s ?(lang = get_language ()) () %a () =\n\
                            match lang with\n%a"
          key
+         print_args args
+         (Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
+            (fun fmt (language, tr) ->
+               Format.fprintf fmt "| %s -> %a"
+                 language print_expr tr) ) tr )
+
+
+let print_module_body primary_module print_expr =
+  let args languages =
+    let rec f a =
+      function [] -> List.rev a
+             | Var x :: t          -> f (M x :: a) t
+             | Var_typed (x, _) :: t -> f (M x :: a) t
+             | Cond (x, _, _) :: t -> f (O x :: a) t
+             | _ :: t              -> f a t in
+    List.map (f []) languages
+    |> List.flatten
+    |> List.sort_uniq compare in
+  let print_args fmt args =
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.pp_print_char fmt ' ')
+      (fun fmt -> function
+         | M x -> Format.fprintf fmt "~%s" x
+         | O x -> Format.fprintf fmt "?(%s=false)" x) fmt args in
+  Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
+    (fun fmt (key, tr) ->
+       let args = args (List.map snd tr) in
+       Format.fprintf fmt "let %s ?(lang = %s.get_language ()) () %a () =\n\
+                           match lang with\n%a"
+         key
+         primary_module
          print_args args
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
@@ -317,15 +350,35 @@ let _ =
        ; print_language_of_string output ~variants ~strings
        ; print_guess_language_of_string output ;
      print_list_of_languages output ~variants ;
-     print_header output ?primary_module ~default_language () ) else (
-     Format.pp_print_string output "[%%shared\n" ;
+     print_header output ?primary_module ~default_language () ) else if (!file_part = "body") then (
+     (* Format.pp_print_string output "[%%shared\n" ; *)
      Format.fprintf output "module Tr = struct\n" ;
-     print_module_body print_expr_html output key_values ;
+     (match primary_module with
+     | Some pm -> print_module_body pm print_expr_html output key_values 
+     | None -> failwith "abnormal") ;
      Format.fprintf output "\nmodule S = struct\n" ;
-     print_module_body print_expr_string output key_values ;
+     (match primary_module with
+     | Some pm -> print_module_body pm print_expr_string output key_values
+     | None -> failwith "abnormal") ;
      Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n" ;
-     Format.pp_print_string output "]\n")
+     Format.pp_print_string output "]\n") else
+     (
+     print_type output ~variants
+     ; print_string_of_language output ~variants ~strings
+     ; print_language_of_string output ~variants ~strings
+     ; print_guess_language_of_string output ;
+     print_list_of_languages output ~variants ;
+     print_header output ?primary_module ~default_language () ;
+     Format.pp_print_string output "[%%shared\n" ;
+     Format.fprintf output "module Tr = struct\n" ;
+     print_module_body_eliom print_expr_html output key_values ;
+     Format.fprintf output "\nmodule S = struct\n" ;
+     print_module_body_eliom print_expr_string output key_values ;
+     Format.fprintf output "\nend\n" ;
+     Format.fprintf output "end\n" ;
+     Format.pp_print_string output "]\n"
+     )
    with Failure msg ->
      failwith (Printf.sprintf "line: %d"
                  lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
