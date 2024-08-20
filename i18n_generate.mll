@@ -425,7 +425,7 @@ let _ =
        ; print_language_of_string_eliom output ~variants ~strings
        ; print_guess_language_of_string_eliom output) ;
      print_list_of_languages_eliom output ~variants ;
-     print_header output ?primary_module ~default_language () ;
+     print_header_eliom output ?primary_module ~default_language () ;
      Format.pp_print_string output "[%%shared\n" ;
      Format.fprintf output "module Tr = struct\n" ;
      print_module_body_eliom print_expr_html output key_values ;
