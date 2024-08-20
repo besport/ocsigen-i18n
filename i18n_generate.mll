@@ -417,7 +417,7 @@ let _ =
      | None -> failwith "abnormal") ;
      Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n" ;
-     Format.pp_print_string output "]\n") else
+     (* Format.pp_print_string output "]\n" *) ) else
      (
           if primary_module = None && not (!external_type) then
        ( print_type_eliom output ~variants
