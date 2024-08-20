@@ -107,6 +107,7 @@ let print_type_eliom fmt ~variants =
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
        Format.pp_print_string) variants
+
 let print_type fmt ~variants =
   Format.fprintf fmt
     "type t = %a\n\
@@ -114,6 +115,7 @@ let print_type fmt ~variants =
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
        Format.pp_print_string) variants
+
 let print_header_eliom fmt ?primary_module ~default_language () =
   let server_language_reference =
     match primary_module with
@@ -156,7 +158,7 @@ let print_header fmt ?primary_module ~default_language () =
    let set_language language = \n\
    your_function_to_setting_language\n\
    \n\
-   let txt = Eliom_content.Html.F.txt \n\
+   let txt = txt \n\
 "
 
 (** Print the function [string_of_language] returning the string representation of a
@@ -395,13 +397,15 @@ let _ =
      let key_values = parse_lines variants [] lexbuf in
      let output = Format.formatter_of_out_channel out_chan in
      if (!file_part = "header") then 
-       ( print_type output ~variants
+       ( Format.fprintf output "open Tyxml.Html\n"
+       ; print_type output ~variants
        ; print_string_of_language output ~variants ~strings
        ; print_language_of_string output ~variants ~strings
        ; print_guess_language_of_string output ;
      print_list_of_languages output ~variants ;
      print_header output ?primary_module ~default_language () ) else if (!file_part = "body") then (
      (* Format.pp_print_string output "[%%shared\n" ; *)
+     Format.fprintf output "open Tyxml.Html\n";
      Format.fprintf output "module Tr = struct\n" ;
      (match primary_module with
      | Some pm -> print_module_body pm print_expr_html output key_values 
