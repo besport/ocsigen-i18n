@@ -10,7 +10,7 @@ usage: ocsigen-i18n-generator [options] [< input] [> output]
   --languages         Comma-separated languages (e.g. en,fr-fr, or Foo.Fr,Foo.Us if using external types). Must be ordered as in source TSV file.
   --default-language  Set the default language (default is the first one in --languages).
   --input-file        TSV file containing keys and translations. If option is omited or set to -, read on stdin.
-  --ouput-file        File TSV file containing keys and translations. If option is omitted or set to -, write on stdout.
+  --output-file        File TSV file containing keys and translations. If option is omitted or set to -, write on stdout.
   --external-type     Values passed to --languages option come from a predefined type (do not generate the type nor from/to string functions).
   --primary           Generated file is secondary and depends on given primary file.
   -help               Display this list of options
