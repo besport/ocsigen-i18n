@@ -408,12 +408,11 @@ let _ =
      Format.fprintf output "module Tr = struct\n" ;
      (match primary_module with
      | Some pm -> print_module_body pm print_expr_html output key_values 
-     | None -> failwith "abnormal") ;
-     print_string "error ? 2\n" ;
+     | None -> failwith "Error: no primary module for the body") ;
      Format.fprintf output "\nmodule S = struct\n" ;
      (match primary_module with
      | Some pm -> print_module_body pm print_expr_string output key_values
-     | None -> failwith "abnormal")    ;
+     | None -> failwith "Error: no primary module for the body")    ;
      Format.fprintf output "\nend\n" ;
      Format.fprintf output "end\n")
      else
