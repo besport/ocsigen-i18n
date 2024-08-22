@@ -30,7 +30,6 @@ let flush buffer acc =
     | x -> Str x :: acc in
   Buffer.clear buffer
 ; acc
-
 }
 
 let lower = ['a'-'z']
@@ -403,9 +402,9 @@ let _ =
        ; print_language_of_string output ~variants ~strings
        ; print_guess_language_of_string output ;
      print_list_of_languages output ~variants ;
-     print_header output ?primary_module ~default_language () ) else if (!file_part = "body") then (
-     (* Format.pp_print_string output "[%%shared\n" ; *)
-     Format.fprintf output "open Tyxml.Html\n";
+         print_header output ?primary_module ~default_language () )
+     else if (!file_part = "body") then 
+     (Format.fprintf output "open Tyxml.Html\n";
      Format.fprintf output "module Tr = struct\n" ;
      (match primary_module with
      | Some pm -> print_module_body pm print_expr_html output key_values 
@@ -414,12 +413,11 @@ let _ =
      Format.fprintf output "\nmodule S = struct\n" ;
      (match primary_module with
      | Some pm -> print_module_body pm print_expr_string output key_values
-     | None -> failwith "abnormal") ;
+     | None -> failwith "abnormal")    ;
      Format.fprintf output "\nend\n" ;
-     Format.fprintf output "end\n" ;
-     (* Format.pp_print_string output "]\n" *) ) else
-     (
-          if primary_module = None && not (!external_type) then
+     Format.fprintf output "end\n")
+     else
+     (if primary_module = None && not (!external_type) then
        ( print_type_eliom output ~variants
        ; print_string_of_language_eliom output ~variants ~strings
        ; print_language_of_string_eliom output ~variants ~strings
