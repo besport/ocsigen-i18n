@@ -382,10 +382,6 @@ let normalize_type ?primary_module s =
   | Some module_name -> module_name ^ "." ^ constr
 
 let _ =
-  let in_chan =
-    match !input_file with
-    | "-" -> stdin
-    | file -> open_in file in
   let out_chan =
     match !output_file with
     | "-" -> stdout
@@ -407,68 +403,72 @@ let _ =
       let x = normalize_type ?primary_module x in
       assert (List.mem x variants) ;
       x in
-  let lexbuf = Lexing.from_channel in_chan in
-  (try
-     let key_values = parse_lines variants [] lexbuf in
+  
      let output = Format.formatter_of_out_channel out_chan in
-     if (!eliom_generation) then 
-       ( if !header then
-           (print_type_eliom output ~variants
-           ; print_string_of_language_eliom output ~variants ~strings
-           ; print_language_of_string_eliom output ~variants ~strings
-           ; print_guess_language_of_string_eliom output)
-         else 
+     if !header then (
+       if !eliom_generation then
+         (print_type_eliom output ~variants
+         ; print_string_of_language_eliom output ~variants ~strings
+         ; print_language_of_string_eliom output ~variants ~strings
+         ; print_guess_language_of_string_eliom output)
+       else
+         (Format.fprintf output "open Tyxml.Html\n"
+         ; print_type output ~variants
+         ; print_string_of_language output ~variants ~strings
+         ; print_language_of_string output ~variants ~strings
+         ; print_guess_language_of_string output 
+         ; print_list_of_languages output ~variants
+         ; print_header output ?primary_module ~default_language () )
+     )
+     else ( 
+       let in_chan =
+         match !input_file with
+         | "-" -> stdin
+         | file -> open_in file in
+       let lexbuf = Lexing.from_channel in_chan in
+       try
+       let key_values = parse_lines variants [] lexbuf in
+       if !eliom_generation then 
+         (  
+           if primary_module = None && not (!external_type) then
+             ( print_type_eliom output ~variants
+             ; print_string_of_language_eliom output ~variants ~strings
+             ; print_language_of_string_eliom output ~variants ~strings
+             ; print_guess_language_of_string_eliom output) ;
+           print_list_of_languages_eliom output ~variants ;
+           print_header_eliom output ?primary_module ~default_language () ;
+           Format.pp_print_string output "[%%shared\n" ;
+           Format.fprintf output "module Tr = struct\n" ;
+           print_module_body_eliom print_expr_html output key_values ;
+           Format.fprintf output "\nmodule S = struct\n" ;
+           print_module_body_eliom print_expr_string output key_values ;
+           Format.fprintf output "\nend\n" ;
+           Format.fprintf output "end\n" ;
+           Format.pp_print_string output "]\n"
+         )
+       else 
+         (  
+           Format.fprintf output "open Tyxml.Html\n" ;
+           if primary_module = None && not (!external_type) then
+             ( print_type output ~variants
+             ; print_string_of_language output ~variants ~strings
+             ; print_language_of_string output ~variants ~strings
+             ; print_guess_language_of_string output 
+             ; print_list_of_languages output ~variants
+             ; print_header output ?primary_module ~default_language () )  ;
+           Format.fprintf output "module Tr = struct\n" 
+           ; print_module_body primary_module print_expr_html output key_values 
+           ; Format.fprintf output "\nmodule S = struct\n" 
+           ; print_module_body primary_module print_expr_string output key_values
+           ; Format.fprintf output "\nend\n" 
+           ; Format.fprintf output "end\n"
+         )
 
-         if primary_module = None && not (!external_type) then
-           ( print_type_eliom output ~variants
-           ; print_string_of_language_eliom output ~variants ~strings
-           ; print_language_of_string_eliom output ~variants ~strings
-           ; print_guess_language_of_string_eliom output) ;
-         print_list_of_languages_eliom output ~variants ;
-         print_header_eliom output ?primary_module ~default_language () ;
-         Format.pp_print_string output "[%%shared\n" ;
-         Format.fprintf output "module Tr = struct\n" ;
-         print_module_body_eliom print_expr_html output key_values ;
-         Format.fprintf output "\nmodule S = struct\n" ;
-         print_module_body_eliom print_expr_string output key_values ;
-         Format.fprintf output "\nend\n" ;
-         Format.fprintf output "end\n" ;
-         Format.pp_print_string output "]\n"
-       )
-     else 
-       ( if !header then
-           (Format.fprintf output "open Tyxml.Html\n"
-           ; print_type output ~variants
-           ; print_string_of_language output ~variants ~strings
-           ; print_language_of_string output ~variants ~strings
-           ; print_guess_language_of_string output 
-           ; print_list_of_languages output ~variants
-           ; print_header output ?primary_module ~default_language () )
-         else 
-           (
-             Format.fprintf output "open Tyxml.Html\n" ;
-
-             if primary_module = None && not (!external_type) then
-
-               ( print_type output ~variants
-               ; print_string_of_language output ~variants ~strings
-               ; print_language_of_string output ~variants ~strings
-               ; print_guess_language_of_string output 
-               ; print_list_of_languages output ~variants
-               ; print_header output ?primary_module ~default_language () )  ;
-
-
-             Format.fprintf output "module Tr = struct\n" 
-             ; print_module_body primary_module print_expr_html output key_values 
-             ; Format.fprintf output "\nmodule S = struct\n" 
-             ; print_module_body primary_module print_expr_string output key_values
-             ; Format.fprintf output "\nend\n" 
-             ; Format.fprintf output "end\n")
-       )
+     ; close_in in_chan 
+     
 
    with Failure msg ->
      failwith (Printf.sprintf "lined: %d"
                  lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
-  close_in in_chan ;
   close_out out_chan
 }
