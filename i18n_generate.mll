@@ -353,7 +353,7 @@ let options = Arg.align
     ; ( "--input-file", Arg.Set_string input_file
       , " TSV file containing keys and translations. \
          If option is omited or set to -, read on stdin.")
-    ; ( "--ouput-file", Arg.Set_string output_file
+    ; ( "--output-file", Arg.Set_string output_file
       , " File TSV file containing keys and translations. \
          If option is omited or set to -, write on stdout.")
     ; ( "--external-type", Arg.Set external_type
