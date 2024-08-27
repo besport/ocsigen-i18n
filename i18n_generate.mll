@@ -38,82 +38,82 @@ let num = ['0'-'9']
 
 let id = (lower | ['_']) (lower | upper | num | ['_'])*
 
-         rule parse_lines langs acc = parse
-           | (id as key) '\t' {
-               (* FIXME: Will break if List.map change its order of execution *)
-               let tr = List.map (fun lang ->
-                   (lang, parse_expr (Buffer.create 0) [] lexbuf) ) langs in
-               eol langs ((key, tr) :: acc) lexbuf }
-           | eof { List.rev acc }
+rule parse_lines langs acc = parse
+  | (id as key) '\t' {
+      (* FIXME: Will break if List.map change its order of execution *)
+      let tr = List.map (fun lang ->
+        (lang, parse_expr (Buffer.create 0) [] lexbuf) ) langs in
+    eol langs ((key, tr) :: acc) lexbuf }
+  | eof { List.rev acc }
 
-         and eol langs acc = parse
-           | [^'\n']* "\n" { Lexing.new_line lexbuf
-                           ; parse_lines langs acc lexbuf}
-           | eof { List.rev acc }
+and eol langs acc = parse
+  | [^'\n']* "\n" { Lexing.new_line lexbuf
+    ; parse_lines langs acc lexbuf}
+  | eof { List.rev acc }
 
-         and parse_expr buffer acc = parse
+and parse_expr buffer acc = parse
 
-           | "{{{" ' '* (id as c) ' '* "?" {
-               let s1 = parse_string_1 (Buffer.create 0) lexbuf in
-               let s2 = parse_string_2 (Buffer.create 0) lexbuf in
-               let acc = flush buffer acc in
-               parse_expr buffer (Cond (c, s1, s2) :: acc) lexbuf
-             }
+  | "{{{" ' '* (id as c) ' '* "?" {
+      let s1 = parse_string_1 (Buffer.create 0) lexbuf in
+      let s2 = parse_string_2 (Buffer.create 0) lexbuf in
+      let acc = flush buffer acc in
+      parse_expr buffer (Cond (c, s1, s2) :: acc) lexbuf
+    }
 
-           | "{{" ' '* (id as x) ' '* "}}" {
-               let acc = flush buffer acc in
-               parse_expr buffer (Var x :: acc) lexbuf }
+  | "{{" ' '* (id as x) ' '* "}}" {
+      let acc = flush buffer acc in
+      parse_expr buffer (Var x :: acc) lexbuf }
 
-           | "{{" ' '* (id as x) ' '* ('%' [^ ' ' '}']+ as f)  ' '* "}}" {
-               let acc = flush buffer acc in
-               parse_expr buffer (Var_typed (x, f) :: acc) lexbuf }
+  | "{{" ' '* (id as x) ' '* ('%' [^ ' ' '}']+ as f)  ' '* "}}" {
+      let acc = flush buffer acc in
+      parse_expr buffer (Var_typed (x, f) :: acc) lexbuf }
 
-           | '\t' | "" { List.rev (flush buffer acc ) }
+  | '\t' | "" { List.rev (flush buffer acc ) }
 
-           | [^ '\n' '\t'] as c { Buffer.add_char buffer c
-                                ; parse_expr buffer acc lexbuf }
+  | [^ '\n' '\t'] as c { Buffer.add_char buffer c
+         ; parse_expr buffer acc lexbuf }
 
-         and parse_string_1 buffer = parse
-           | "||" { String.escaped (Buffer.contents buffer) }
-           | _ as c { Buffer.add_char buffer c
-                    ; parse_string_1 buffer lexbuf }
+and parse_string_1 buffer = parse
+  | "||" { String.escaped (Buffer.contents buffer) }
+  | _ as c { Buffer.add_char buffer c
+    ; parse_string_1 buffer lexbuf }
 
-         and parse_string_2 buffer = parse
-           | "}}}" { String.escaped (Buffer.contents buffer) }
-           | _ as c { Buffer.add_char buffer c
-                    ; parse_string_2 buffer lexbuf }
+and parse_string_2 buffer = parse
+  | "}}}" { String.escaped (Buffer.contents buffer) }
+  | _ as c { Buffer.add_char buffer c
+    ; parse_string_2 buffer lexbuf }
 
-             {
+    {
 
-               let print_list_of_languages_eliom fmt ~variants =
-                 Format.fprintf fmt
-                   "let%%shared languages = [%a]\n"
-                   (Format.pp_print_list
-                      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
-                      Format.pp_print_string) variants
+let print_list_of_languages_eliom fmt ~variants =
+  Format.fprintf fmt
+    "let%%shared languages = [%a]\n"
+    (Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
+      Format.pp_print_string) variants
 
 let print_list_of_languages fmt ~variants =
   Format.fprintf fmt
     "let languages = [%a]\n"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
-       Format.pp_print_string) variants
+      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ";")
+      Format.pp_print_string) variants
 
 let print_type_eliom fmt ~variants =
   Format.fprintf fmt
     "[%%%%shared type t = %a]\n\
      [%%%%shared exception Unknown_language of string]\n"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
-       Format.pp_print_string) variants
+      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
+      Format.pp_print_string) variants
 
 let print_type fmt ~variants =
   Format.fprintf fmt
     "type t = %a\n\
      exception Unknown_language of string\n"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
-       Format.pp_print_string) variants
+      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
+      Format.pp_print_string) variants
 
 let print_header_eliom fmt ?primary_module ~default_language () =
   let server_language_reference =
@@ -133,19 +133,19 @@ let print_header_eliom fmt ?primary_module ~default_language () =
   Format.pp_print_string fmt @@
   default_lang ^
   "let%server _language_ = " ^ server_language_reference ^ "\n\
-                                                            let%server get_language () = Eliom_reference.Volatile.get _language_\n\
-                                                            let%server set_language language = \n\
-                                                            Eliom_reference.Volatile.set _language_ language\n\
-                                                            \n\
-                                                            let%client _language_ = " ^ client_language_reference ^ "\n\
-                                                                                                                     let%client get_language () = !_language_\n\
-                                                                                                                     let%client set_language language = _language_ := language\n\
-                                                                                                                     \n\
-                                                                                                                     let%shared txt = Eliom_content.Html.F.txt\n\
-                                                                                                                    "
+  let%server get_language () = Eliom_reference.Volatile.get _language_\n\
+  let%server set_language language = \n\
+  Eliom_reference.Volatile.set _language_ language\n\
+  \n\
+  let%client _language_ = " ^ client_language_reference ^ "\n\
+  let%client get_language () = !_language_\n\
+  let%client set_language language = _language_ := language\n\
+  \n\
+  let%shared txt = Eliom_content.Html.F.txt\n\
+  "
 
 let print_header fmt ?primary_module ~default_language () =
-  let  default_lang =
+  let default_lang =
     match primary_module with
     | None -> "let default_language = " ^ default_language ^ "\n"
     | Some module_name -> ""
@@ -248,10 +248,10 @@ let print_module_body primary_module print_expr =
   let args languages =
     let rec f a =
       function [] -> List.rev a
-             | Var x :: t          -> f (M x :: a) t
-             | Var_typed (x, _) :: t -> f (M x :: a) t
-             | Cond (x, _, _) :: t -> f (O x :: a) t
-             | _ :: t              -> f a t in
+        | Var x :: t            -> f (M x :: a) t
+        | Var_typed (x, _) :: t -> f (M x :: a) t
+        | Cond (x, _, _) :: t   -> f (O x :: a) t
+        | _ :: t                -> f a t in
     List.map (f []) languages
     |> List.flatten
     |> List.sort_uniq compare in
@@ -447,8 +447,7 @@ let _ =
            Format.pp_print_string output "]\n"
          )
        else 
-         (  
-           Format.fprintf output "open Tyxml.Html\n" ;
+         (Format.fprintf output "open Tyxml.Html\n" ;
            if primary_module = None && not (!external_type) then
              ( print_type output ~variants
              ; print_string_of_language output ~variants ~strings
