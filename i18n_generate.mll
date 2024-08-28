@@ -164,51 +164,53 @@ let print_header fmt ?primary_module ~default_language () =
     value o type t. The string representation is simply the value as a string. For
     example, the string representation of [Us] is ["Us"]
 *)
-let print_string_of_language_eliom fmt ~variants ~strings =
-  Format.pp_print_string fmt "let%shared string_of_language = function \n" ;
-  List.iter2 (fun v s -> Format.fprintf fmt "| %s -> %S" v s)
-    variants strings ;
-  Format.pp_print_string fmt "\n"
 
-let print_string_of_language fmt ~variants ~strings =
-  Format.pp_print_string fmt "let string_of_language = function \n" ;
+
+let helper_print_string_of_language ~eliom fmt ~variants ~strings =
+  Format.pp_print_string fmt
+  (if eliom then "let%shared string_of_language = function \n"
+   else "let string_of_language = function \n") ;
   List.iter2 (fun v s -> Format.fprintf fmt "| %s -> %S" v s)
     variants strings ;
   Format.pp_print_string fmt "\n"
+let print_string_of_language_eliom = helper_print_string_of_language ~eliom:true
+
+let print_string_of_language = helper_print_string_of_language ~eliom:false
+  
 
 
 (** Print the function [language_of_string] returning the value of type t which
     corresponds to the given string. The exception [Unknown_language] is raised with
     the given string if the language doesn't exist.
 *)
-let print_language_of_string_eliom fmt ~variants ~strings =
-  Format.pp_print_string fmt "let%shared language_of_string = function\n" ;
+
+let helper_print_language_of_string ~eliom fmt ~variants ~strings =
+  Format.pp_print_string fmt
+  (if eliom then "let%shared language_of_string = function\n"
+   else "let language_of_string = function\n") ;
   List.iter2 (fun v s -> Format.fprintf fmt "| %S -> %s" s v)
     variants strings ;
   Format.pp_print_string fmt "| s -> raise (Unknown_language s)\n"
 
-let print_language_of_string fmt ~variants ~strings =
-  Format.pp_print_string fmt "let language_of_string = function\n" ;
-  List.iter2 (fun v s -> Format.fprintf fmt "| %S -> %s" s v)
-    variants strings ;
-  Format.pp_print_string fmt "| s -> raise (Unknown_language s)\n"
+let print_language_of_string_eliom  = helper_print_language_of_string ~eliom:true
+let print_language_of_string = helper_print_language_of_string ~eliom:false
 
-let print_guess_language_of_string_eliom fmt =
+let helper_print_guess_language_of_string ~eliom fmt =
+  let prefix = if eliom then "let%shared " else "let " in
   Format.pp_print_string fmt
-    "let%shared guess_language_of_string s = \n\
-     try language_of_string s \n\
-     with Unknown_language _ as e -> \n\
-     try language_of_string (String.sub s 0 (String.index s '-')) \n\
-     with Not_found -> \n\
-     raise e \n"
-let print_guess_language_of_string fmt =
-  Format.pp_print_string fmt
-    "let guess_language_of_string s = \n\
-     try language_of_string s \n\
-     with Unknown_language _ as e -> \n\
-     try language_of_string (String.sub s 0 (String.index s '-')) \n\
-     with Not_found -> \n\
-     raise e \n"
+    (prefix ^ "guess_language_of_string s = \n\
+      try language_of_string s \n\
+      with Unknown_language _ as e -> \n\
+      try language_of_string (String.sub s 0 (String.index s '-')) \n\
+      with Not_found -> \n\
+      raise e \n")
+
+let print_guess_language_of_string_eliom =
+  helper_print_guess_language_of_string ~eliom:true 
+
+let print_guess_language_of_string =
+  helper_print_guess_language_of_string ~eliom:false
+
 
 type arg = M of string | O of string
 
@@ -248,10 +250,10 @@ let print_module_body primary_module print_expr =
   let args languages =
     let rec f a =
       function [] -> List.rev a
-        | Var x :: t            -> f (M x :: a) t
+        | Var x :: t -> f (M x :: a) t
         | Var_typed (x, _) :: t -> f (M x :: a) t
-        | Cond (x, _, _) :: t   -> f (O x :: a) t
-        | _ :: t                -> f a t in
+        | Cond (x, _, _) :: t -> f (O x :: a) t
+        | _ :: t -> f a t in
     List.map (f []) languages
     |> List.flatten
     |> List.sort_uniq compare in
