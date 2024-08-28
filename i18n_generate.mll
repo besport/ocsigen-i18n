@@ -418,9 +418,7 @@ let _ =
          ; print_type output ~variants
          ; print_string_of_language output ~variants ~strings
          ; print_language_of_string output ~variants ~strings
-         ; print_guess_language_of_string output 
-         ; print_list_of_languages output ~variants
-         ; print_header output ?primary_module ~default_language () )
+         ; print_guess_language_of_string output)
      )
      else ( 
        let in_chan =
@@ -454,10 +452,10 @@ let _ =
              ( print_type output ~variants
              ; print_string_of_language output ~variants ~strings
              ; print_language_of_string output ~variants ~strings
-             ; print_guess_language_of_string output 
-             ; print_list_of_languages output ~variants
-             ; print_header output ?primary_module ~default_language () )  ;
-           Format.fprintf output "module Tr = struct\n" 
+             ; print_guess_language_of_string output)  ;
+             print_list_of_languages output ~variants
+           ; print_header output ?primary_module ~default_language ()
+           ; Format.fprintf output "module Tr = struct\n"
            ; print_module_body primary_module print_expr_html output key_values 
            ; Format.fprintf output "\nmodule S = struct\n" 
            ; print_module_body primary_module print_expr_string output key_values
