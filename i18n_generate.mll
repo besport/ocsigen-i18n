@@ -417,9 +417,7 @@ let _ =
          (print_type_eliom output ~variants
          ; print_string_of_language_eliom output ~variants ~strings
          ; print_language_of_string_eliom output ~variants ~strings
-         ; print_guess_language_of_string_eliom output
-         ; print_list_of_languages_eliom output ~variants 
-         ; print_generated_functions_eliom output ?primary_module ~default_language ())
+         ; print_guess_language_of_string_eliom output)
        else
          (Format.fprintf output "open Tyxml.Html\n"
          ; print_type output ~variants
