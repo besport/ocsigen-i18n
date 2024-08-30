@@ -165,6 +165,8 @@ let print_generated_functions fmt ?primary_module ~default_language () =
    let txt = txt \n\
   "
 
+
+  
 (** Print the function [string_of_language] returning the string representation of a
     value o type t. The string representation is simply the value as a string. For
     example, the string representation of [Us] is ["Us"]
@@ -216,6 +218,21 @@ let print_guess_language_of_string_eliom =
 let print_guess_language_of_string =
   helper_print_guess_language_of_string ~eliom:false
 
+
+let print_header_eliom output variants strings =
+  print_type_eliom output ~variants
+  ; print_string_of_language_eliom output ~variants ~strings
+  ; print_language_of_string_eliom output ~variants ~strings
+  ; print_guess_language_of_string_eliom output
+
+let print_header output variants strings primary_module default_language =
+  Format.fprintf output "open Tyxml.Html\n"
+  ; print_type output ~variants
+  ; print_string_of_language output ~variants ~strings
+  ; print_language_of_string output ~variants ~strings
+  ; print_guess_language_of_string output
+  ; print_list_of_languages output ~variants
+  ; print_generated_functions output ?primary_module ~default_language ()
 
 type arg = M of string | O of string
 
@@ -414,19 +431,9 @@ let _ =
      let output = Format.formatter_of_out_channel out_chan in
      if !header then (
        if !eliom_generation then
-         (print_type_eliom output ~variants
-         ; print_string_of_language_eliom output ~variants ~strings
-         ; print_language_of_string_eliom output ~variants ~strings
-         ; print_guess_language_of_string_eliom output)
+         (print_header_eliom output variants strings)
        else
-         (Format.fprintf output "open Tyxml.Html\n"
-         ; print_type output ~variants
-         ; print_string_of_language output ~variants ~strings
-         ; print_language_of_string output ~variants ~strings
-         ; print_guess_language_of_string output
-         ; print_list_of_languages output ~variants
-         ; print_generated_functions output ?primary_module ~default_language ())
-     
+         (print_header output variants strings primary_module default_language)
      )
      else ( 
        let in_chan =
@@ -439,10 +446,7 @@ let _ =
        if !eliom_generation then 
          (  
            if primary_module = None && not (!external_type) then
-             ( print_type_eliom output ~variants
-             ; print_string_of_language_eliom output ~variants ~strings
-             ; print_language_of_string_eliom output ~variants ~strings
-             ; print_guess_language_of_string_eliom output) ;
+             ( print_header_eliom output variants strings) ;
            print_list_of_languages_eliom output ~variants ;
            print_generated_functions_eliom output ?primary_module ~default_language () ;
            Format.pp_print_string output "[%%shared\n" ;
@@ -457,14 +461,7 @@ let _ =
        else 
          (
            if primary_module = None && not (!external_type) then
-             (Format.fprintf output "open Tyxml.Html\n" 
-             ; print_type output ~variants
-             ; print_string_of_language output ~variants ~strings
-             ; print_language_of_string output ~variants ~strings
-             ; print_guess_language_of_string output
-             ; print_list_of_languages output ~variants
-             ; print_generated_functions output ?primary_module ~default_language ()
-             )
+             (print_header output variants strings primary_module default_language)
            else if not (primary_module = None) then
              ( match primary_module with
              | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
