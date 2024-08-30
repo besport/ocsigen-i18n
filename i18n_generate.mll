@@ -115,7 +115,7 @@ let print_type fmt ~variants =
       ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "|")
       Format.pp_print_string) variants
 
-let print_header_eliom fmt ?primary_module ~default_language () =
+let print_generated_functions_eliom fmt ?primary_module ~default_language () =
   let server_language_reference =
     match primary_module with
     | None -> "Eliom_reference.Volatile.eref\n\
@@ -144,7 +144,7 @@ let print_header_eliom fmt ?primary_module ~default_language () =
   let%shared txt = Eliom_content.Html.F.txt\n\
   "
 
-let print_header fmt ?primary_module ~default_language () =
+let print_generated_functions fmt ?primary_module ~default_language () =
   let default_lang =
     match primary_module with
     | None -> "let default_language = " ^ default_language ^ "\n\ "
@@ -419,7 +419,7 @@ let _ =
          ; print_language_of_string_eliom output ~variants ~strings
          ; print_guess_language_of_string_eliom output
          ; print_list_of_languages_eliom output ~variants 
-         ; print_header_eliom output ?primary_module ~default_language ())
+         ; print_generated_functions_eliom output ?primary_module ~default_language ())
        else
          (Format.fprintf output "open Tyxml.Html\n"
          ; print_type output ~variants
@@ -427,7 +427,7 @@ let _ =
          ; print_language_of_string output ~variants ~strings
          ; print_guess_language_of_string output
          ; print_list_of_languages output ~variants
-         ; print_header output ?primary_module ~default_language ())
+         ; print_generated_functions output ?primary_module ~default_language ())
      
      )
      else ( 
@@ -446,7 +446,7 @@ let _ =
              ; print_language_of_string_eliom output ~variants ~strings
              ; print_guess_language_of_string_eliom output) ;
            print_list_of_languages_eliom output ~variants ;
-           print_header_eliom output ?primary_module ~default_language () ;
+           print_generated_functions_eliom output ?primary_module ~default_language () ;
            Format.pp_print_string output "[%%shared\n" ;
            Format.fprintf output "module Tr = struct\n" ;
            print_module_body_eliom print_expr_html output key_values ;
@@ -465,7 +465,7 @@ let _ =
              ; print_language_of_string output ~variants ~strings
              ; print_guess_language_of_string output
              ; print_list_of_languages output ~variants
-             ; print_header output ?primary_module ~default_language ()
+             ; print_generated_functions output ?primary_module ~default_language ()
              )
            else if not (primary_module = None) then
              ( match primary_module with
