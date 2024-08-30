@@ -162,7 +162,6 @@ let print_generated_functions fmt ?primary_module ~default_language () =
    let set_language language = \n\
    your_function_to_setting_language\n\
    \n\
-   let txt = txt \n\
   "
 
 
