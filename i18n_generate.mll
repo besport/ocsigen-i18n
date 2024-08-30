@@ -480,7 +480,7 @@ let _ =
      
 
    with Failure msg ->
-     failwith (Printf.sprintf "lined: %d"
+     failwith (Printf.sprintf "line: %d"
                  lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ) ;
   close_out out_chan
 }
