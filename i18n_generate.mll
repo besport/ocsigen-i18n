@@ -220,19 +220,19 @@ let print_guess_language_of_string =
 
 
 let print_header_eliom output variants strings =
-  print_type_eliom output ~variants
-  ; print_string_of_language_eliom output ~variants ~strings
-  ; print_language_of_string_eliom output ~variants ~strings
-  ; print_guess_language_of_string_eliom output
+  print_type_eliom output ~variants ;
+  print_string_of_language_eliom output ~variants ~strings ;
+  print_language_of_string_eliom output ~variants ~strings ;
+  print_guess_language_of_string_eliom output
 
 let print_header output variants strings primary_module default_language =
-  Format.fprintf output "open Tyxml.Html\n"
-  ; print_type output ~variants
-  ; print_string_of_language output ~variants ~strings
-  ; print_language_of_string output ~variants ~strings
-  ; print_guess_language_of_string output
-  ; print_list_of_languages output ~variants
-  ; print_generated_functions output ?primary_module ~default_language ()
+  Format.fprintf output "open Tyxml.Html\n" ;
+  print_type output ~variants ;
+  print_string_of_language output ~variants ~strings ;
+  print_language_of_string output ~variants ~strings ;
+  print_guess_language_of_string output ;
+  print_list_of_languages output ~variants ;
+  print_generated_functions output ?primary_module ~default_language ()
 
 type arg = M of string | O of string
 
@@ -310,8 +310,7 @@ let print_module_body primary_module print_expr =
                ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "\n")
                (fun fmt (language, tr) ->
                   Format.fprintf fmt "| %s -> %a"
-                    language print_expr tr) ) tr )
-    )
+                    language print_expr tr) ) tr ))
 
 let pp_print_list fmt printer =
   Format.fprintf fmt "[%a]"
@@ -368,13 +367,15 @@ let print_body_eliom output key_values =
   Format.fprintf output "\nend\n" ;
   Format.fprintf output "end\n" ;
   Format.pp_print_string output "]\n"
+
 let print_body output key_values primary_module =
-  Format.fprintf output "module Tr = struct\n"
-  ; print_module_body primary_module print_expr_html output key_values 
-  ; Format.fprintf output "\nmodule S = struct\n" 
-  ; print_module_body primary_module print_expr_string output key_values
-  ; Format.fprintf output "\nend\n" 
-  ; Format.fprintf output "end\n"
+  Format.fprintf output "module Tr = struct\n" ;
+  print_module_body primary_module print_expr_html output key_values ;
+  Format.fprintf output "\nmodule S = struct\n" ;
+  print_module_body primary_module print_expr_string output key_values ;
+  Format.fprintf output "\nend\n" ;
+  Format.fprintf output "end\n"
+
 let input_file = ref "-"
 let output_file = ref "-"
 let eliom_generation = ref false
@@ -460,27 +461,21 @@ let _ =
        try
        let key_values = parse_lines variants [] lexbuf in
        if !eliom_generation then 
-         (  
-           if primary_module = None && not (!external_type) then
-             ( print_header_eliom output variants strings) ;
-           print_list_of_languages_eliom output ~variants ;
-           print_generated_functions_eliom output ?primary_module ~default_language () ;
-
-           print_body_eliom output key_values
-         )
+         (if primary_module = None && not (!external_type) then
+            (print_header_eliom output variants strings) ;
+             print_list_of_languages_eliom output ~variants ;
+             print_generated_functions_eliom output ?primary_module ~default_language () ;
+          print_body_eliom output key_values)
        else 
-         (
-           if primary_module = None && not (!external_type) then
-             (print_header output variants strings primary_module default_language)
-           else if not (primary_module = None) then
-             ( match primary_module with
-             | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
-             | None -> failwith "Not possible"
-             ) ;
-           print_body output key_values primary_module
-         )
-
-     ; close_in in_chan 
+         (if primary_module = None && not (!external_type) then
+            (print_header output variants strings primary_module default_language)
+          else if not (primary_module = None) then
+            (match primary_module with
+            | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
+            | None -> failwith "Not possible"
+            ) ;
+           print_body output key_values primary_module) ;
+     close_in in_chan 
      
 
    with Failure msg ->
