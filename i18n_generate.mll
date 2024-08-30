@@ -448,7 +448,10 @@ let _ =
      let output = Format.formatter_of_out_channel out_chan in
      if !header then (
        if !eliom_generation then
-         (print_header_eliom output variants strings)
+         (print_header_eliom output variants strings ;
+          print_list_of_languages_eliom output ~variants ;
+          print_generated_functions_eliom output ?primary_module ~default_language () 
+         )
        else
          (print_header output variants strings primary_module default_language)
      )
@@ -463,8 +466,8 @@ let _ =
        if !eliom_generation then 
          (if primary_module = None && not (!external_type) then
             (print_header_eliom output variants strings) ;
-             print_list_of_languages_eliom output ~variants ;
-             print_generated_functions_eliom output ?primary_module ~default_language () ;
+          print_list_of_languages_eliom output ~variants ;
+          print_generated_functions_eliom output ?primary_module ~default_language () ;
           print_body_eliom output key_values)
        else 
          (if primary_module = None && not (!external_type) then
