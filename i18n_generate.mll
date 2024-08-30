@@ -147,12 +147,17 @@ let print_header_eliom fmt ?primary_module ~default_language () =
 let print_header fmt ?primary_module ~default_language () =
   let default_lang =
     match primary_module with
-    | None -> "let default_language = " ^ default_language ^ "\n"
-    | Some module_name -> ""
+    | None -> "let default_language = " ^ default_language ^ "\n\ "
+    | Some module_name -> "let default_language = " ^ module_name ^ ".default_language \n\ "
+  in
+  let language =
+    match primary_module with
+    | None -> "default_language"
+    | Some module_name -> module_name ^ "._language_"
   in
   Format.pp_print_string fmt @@
   default_lang ^
-  "let _language_ = default_language \n\
+  "let _language_ = " ^ language ^ " \n\
    let get_language () = your_function_to_getting_language \n\
    let set_language language = \n\
    your_function_to_setting_language\n\
@@ -412,13 +417,18 @@ let _ =
          (print_type_eliom output ~variants
          ; print_string_of_language_eliom output ~variants ~strings
          ; print_language_of_string_eliom output ~variants ~strings
-         ; print_guess_language_of_string_eliom output)
+         ; print_guess_language_of_string_eliom output
+         ; print_list_of_languages_eliom output ~variants 
+         ; print_header_eliom output ?primary_module ~default_language ())
        else
          (Format.fprintf output "open Tyxml.Html\n"
          ; print_type output ~variants
          ; print_string_of_language output ~variants ~strings
          ; print_language_of_string output ~variants ~strings
-         ; print_guess_language_of_string output)
+         ; print_guess_language_of_string output
+         ; print_list_of_languages output ~variants
+         ; print_header output ?primary_module ~default_language ())
+     
      )
      else ( 
        let in_chan =
@@ -447,15 +457,23 @@ let _ =
            Format.pp_print_string output "]\n"
          )
        else 
-         (Format.fprintf output "open Tyxml.Html\n" ;
+         (
            if primary_module = None && not (!external_type) then
-             ( print_type output ~variants
+             (Format.fprintf output "open Tyxml.Html\n" 
+             ; print_type output ~variants
              ; print_string_of_language output ~variants ~strings
              ; print_language_of_string output ~variants ~strings
-             ; print_guess_language_of_string output)  ;
-             print_list_of_languages output ~variants
-           ; print_header output ?primary_module ~default_language ()
-           ; Format.fprintf output "module Tr = struct\n"
+             ; print_guess_language_of_string output
+             ; print_list_of_languages output ~variants
+             ; print_header output ?primary_module ~default_language ()
+             )
+           else if not (primary_module = None) then
+             ( match primary_module with
+             | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
+             | None -> failwith "Not possible"
+             ) ;
+             
+           Format.fprintf output "module Tr = struct\n"
            ; print_module_body primary_module print_expr_html output key_values 
            ; Format.fprintf output "\nmodule S = struct\n" 
            ; print_module_body primary_module print_expr_string output key_values
