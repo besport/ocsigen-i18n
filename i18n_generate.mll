@@ -359,6 +359,22 @@ let print_expr_string fmt key_values =
     Format.fprintf fmt "String.concat \"\" " ;
     pp_print_list fmt print_key_value key_values
 
+let print_body_eliom output key_values = 
+  Format.pp_print_string output "[%%shared\n" ;
+  Format.fprintf output "module Tr = struct\n" ;
+  print_module_body_eliom print_expr_html output key_values ;
+  Format.fprintf output "\nmodule S = struct\n" ;
+  print_module_body_eliom print_expr_string output key_values ;
+  Format.fprintf output "\nend\n" ;
+  Format.fprintf output "end\n" ;
+  Format.pp_print_string output "]\n"
+let print_body output key_values primary_module =
+  Format.fprintf output "module Tr = struct\n"
+  ; print_module_body primary_module print_expr_html output key_values 
+  ; Format.fprintf output "\nmodule S = struct\n" 
+  ; print_module_body primary_module print_expr_string output key_values
+  ; Format.fprintf output "\nend\n" 
+  ; Format.fprintf output "end\n"
 let input_file = ref "-"
 let output_file = ref "-"
 let eliom_generation = ref false
@@ -449,14 +465,8 @@ let _ =
              ( print_header_eliom output variants strings) ;
            print_list_of_languages_eliom output ~variants ;
            print_generated_functions_eliom output ?primary_module ~default_language () ;
-           Format.pp_print_string output "[%%shared\n" ;
-           Format.fprintf output "module Tr = struct\n" ;
-           print_module_body_eliom print_expr_html output key_values ;
-           Format.fprintf output "\nmodule S = struct\n" ;
-           print_module_body_eliom print_expr_string output key_values ;
-           Format.fprintf output "\nend\n" ;
-           Format.fprintf output "end\n" ;
-           Format.pp_print_string output "]\n"
+
+           print_body_eliom output key_values
          )
        else 
          (
@@ -467,13 +477,7 @@ let _ =
              | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
              | None -> failwith "Not possible"
              ) ;
-             
-           Format.fprintf output "module Tr = struct\n"
-           ; print_module_body primary_module print_expr_html output key_values 
-           ; Format.fprintf output "\nmodule S = struct\n" 
-           ; print_module_body primary_module print_expr_string output key_values
-           ; Format.fprintf output "\nend\n" 
-           ; Format.fprintf output "end\n"
+           print_body output key_values primary_module
          )
 
      ; close_in in_chan 
