@@ -224,8 +224,8 @@ let print_header_eliom output variants strings =
   print_language_of_string_eliom output ~variants ~strings ;
   print_guess_language_of_string_eliom output
 
-let print_header output variants strings primary_module default_language =
-  Format.fprintf output "open Tyxml.Html\n" ;
+let print_header ~tyxml output variants strings primary_module default_language =
+  if tyxml then Format.fprintf output "open Tyxml.Html\n" ;
   print_type output ~variants ;
   print_string_of_language output ~variants ~strings ;
   print_language_of_string output ~variants ~strings ;
@@ -367,9 +367,9 @@ let print_body_eliom output key_values =
   Format.fprintf output "end\n" ;
   Format.pp_print_string output "]\n"
 
-let print_body output key_values primary_module =
+let print_body ~tyxml output key_values primary_module =
   Format.fprintf output "module Tr = struct\n" ;
-  print_module_body primary_module print_expr_html output key_values ;
+  if tyxml then print_module_body primary_module print_expr_html output key_values ;
   Format.fprintf output "\nmodule S = struct\n" ;
   print_module_body primary_module print_expr_string output key_values ;
   Format.fprintf output "\nend\n" ;
@@ -378,6 +378,7 @@ let print_body output key_values primary_module =
 let input_file = ref "-"
 let output_file = ref "-"
 let eliom_generation = ref false
+let tyxml_generation = ref false
 let header = ref false
 let languages = ref ""
 let default_language = ref ""
@@ -402,12 +403,14 @@ let options = Arg.align
     ; ( "--primary", Arg.Set_string primary_file
       , " Generated file is secondary and depends on given primary file.")
     ; ( "--eliom", Arg.Set eliom_generation
-      , " File-generation for eliom.")
+      , " Generate code for a client-server Eliom app (implies --tyxml).")
+    ; ( "--tyxml", Arg.Set tyxml_generation
+      , " Generate code for a Tyxml-based app (for example a server-side Eliom app).")
     ; ( "--header", Arg.Set header
-      , " Generate only the header file.")
+      , " Generate only the file header.")
     ]
 
-let usage = "usage: ocsigen-i18n-generator [options] [< input] [> output]"
+let usage = "usage: ocsigen-i18n [options] [< input] [> output]"
 
 let _ = Arg.parse options (fun s -> ()) usage
 
@@ -445,6 +448,7 @@ let _ =
       x in
   
      let output = Format.formatter_of_out_channel out_chan in
+     let tyxml = !tyxml_generation in
      if !header then (
        if !eliom_generation then
          (print_header_eliom output variants strings ;
@@ -452,7 +456,7 @@ let _ =
           print_generated_functions_eliom output ?primary_module ~default_language () 
          )
        else
-         (print_header output variants strings primary_module default_language)
+         (print_header ~tyxml output variants strings primary_module default_language)
      )
      else ( 
        let in_chan =
@@ -470,13 +474,13 @@ let _ =
           print_body_eliom output key_values)
        else 
          (if primary_module = None && not (!external_type) then
-            (print_header output variants strings primary_module default_language)
+            (print_header ~tyxml output variants strings primary_module default_language)
           else if not (primary_module = None) then
             (match primary_module with
             | Some(module_name) -> Format.fprintf output "open %s \n" module_name 
             | None -> failwith "Not possible"
             ) ;
-           print_body output key_values primary_module) ;
+           print_body ~tyxml output key_values primary_module) ;
      close_in in_chan 
      
 

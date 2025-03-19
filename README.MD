@@ -1,18 +1,20 @@
 # ocsigen-i18n
 
-I18n made easy for web sites written with
-[eliom](https://github.com/ocsigen/eliom)
+I18n made easy for OCaml apps.
 
-### ocsigen-i18n-generator
+### ocsigen-i18n
 
 ```
-usage: ocsigen-i18n-generator [options] [< input] [> output]
+usage: ocsigen-i18n [options] [< input] [> output]
   --languages         Comma-separated languages (e.g. en,fr-fr, or Foo.Fr,Foo.Us if using external types). Must be ordered as in source TSV file.
   --default-language  Set the default language (default is the first one in --languages).
   --input-file        TSV file containing keys and translations. If option is omited or set to -, read on stdin.
   --output-file        File TSV file containing keys and translations. If option is omitted or set to -, write on stdout.
   --external-type     Values passed to --languages option come from a predefined type (do not generate the type nor from/to string functions).
   --primary           Generated file is secondary and depends on given primary file.
+  --eliom             Generate code for a client-server Eliom app
+  --tyxml             Generate code for a Tyxml-based app (for example a server-side Eliom app)
+  --header            Generate only the file header 
   -help               Display this list of options
   --help              Display this list of options
 ```
@@ -23,7 +25,7 @@ The ppx supports two general forms of constructions:
  - I18n entries in the 'default' file
  - I18n entries in a given module
 
-You can use `ocsigen-i18n-generator` to generate multiple .eliom files
+You can use `ocsigen-i18n` to generate multiple `.ml` or `.eliom` files
 from different TSV files. One of those will be the "default" one.
 
 Use the `-ppx 'ocsigen-i18n-rewriter --default-module DEFAULT'` where `DEFAULT`
