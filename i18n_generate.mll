@@ -157,10 +157,13 @@ let print_generated_functions fmt ?primary_module ~default_language () =
   in
   Format.pp_print_string fmt @@
   default_lang ^
-  "let _language_ = " ^ language ^ " \n\
-   let get_language () = your_function_to_getting_language \n\
-   let set_language language = \n\
-   your_function_to_setting_language\n\
+  "(* We use a reference to store the language by default.\n\
+      Customize these functions if needed.\n\
+      For example use a scoped reference if you are using Eliom\n\
+      and want the language to depend on a session/tab or session group. *)\n\
+   let _language_ = ref " ^ language ^ "\n\
+   let get_language () = !_language_\n\
+   let set_language language = _language_ := language\n\
    \n\
   "
 
