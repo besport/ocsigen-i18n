@@ -373,10 +373,10 @@ let print_body_eliom output key_values =
 let print_body ~tyxml output key_values primary_module =
   Format.fprintf output "module Tr = struct\n" ;
   if tyxml then print_module_body primary_module print_expr_html output key_values ;
-  Format.fprintf output "\nmodule S = struct\n" ;
+  if tyxml then Format.fprintf output "\nmodule S = struct\n" ;
   print_module_body primary_module print_expr_string output key_values ;
   Format.fprintf output "\nend\n" ;
-  Format.fprintf output "end\n"
+  if tyxml then Format.fprintf output "end\n"
 
 let input_file = ref "-"
 let output_file = ref "-"
