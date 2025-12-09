@@ -17,3 +17,5 @@ depends: [
   "ppxlib" {>= "0.21.0"}
 ]
 authors: "Julien Sagot"
+x-maintenance-intent: ["(latest)" ]
+
