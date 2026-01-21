@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Execute ocsigen-i18n with the --eliom flag
+exec ocsigen-i18n --eliom "$@"
+
