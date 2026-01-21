@@ -15,7 +15,7 @@
 
 (executable
   (name i18n_generate)
-  (public_name ocsigen-i18n-generator)
+  (public_name ocsigen-i18n)
   (package ocsigen-i18n)
   (modules i18n_generate)
   (libraries str))
@@ -26,6 +26,10 @@
   (package ocsigen-i18n)
   (modules i18n_ppx_checker)
   (libraries str ppxlib))
+
+(install
+  (section bin)
+  (files bin/ocsigen-i18n-generator))
 
 (ocamllex i18n_generate)
 
